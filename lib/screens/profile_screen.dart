@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_providers.dart';
 import 'profile_setup_screen.dart';
 import 'notification_screen.dart';
-import 'onboarding_screen.dart';
 
 /// Presentation profile layer displaying individual ALU student metrics, tags, and parameters.
 /// Features a modal contextual options drawer sheet and notification routing pipelines.
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const Color aluDeepGreen = Color(0xFF0C4E33);
     const Color aluOrange = Color(0xFFF19E18);
 
@@ -35,7 +36,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 24),
-                      onPressed: () => _showSettingsBottomSheet(context),
+                      onPressed: () => _showSettingsBottomSheet(context, ref),
                     ),
                     Stack(
                       children: [
@@ -70,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     'M',
-                    style: GoogleFonts.inter(color: Colors.black, fontSize: 30, fontWeight: FontWeight.black),
+                    style: GoogleFonts.inter(color: Colors.black, fontSize: 30, fontWeight: FontWeight.w900),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -78,14 +79,14 @@ class ProfileScreen extends StatelessWidget {
                 // Username Typography Node
                 Text(
                   'm.dhieu',
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.black),
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 4),
 
                 // Institutional campus status string line
                 Text(
                   'ALU Student · Kigali Campus',
-                  style: GoogleFonts.inter(color: Colors.white.withOpacity(0.7), fontSize: 14, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.7), fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 24),
 
@@ -111,7 +112,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Skills',
-                    style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.black),
+                    style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 14),
                   Wrap(
@@ -122,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 28),
                   Text(
                     'Interests',
-                    style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.black),
+                    style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 14),
                   Wrap(
@@ -133,7 +134,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 28),
                   Text(
                     'About ALU Connect',
-                    style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.black),
+                    style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -165,12 +166,12 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Text(
           numericValue,
-          style: GoogleFonts.inter(color: Colors.white, fontSize: 20, fontWeight: FontWeight.black),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 4),
         Text(
           descriptorLabel,
-          style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w500),
+          style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -188,7 +189,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   /// Displays an interactive contextual menu options dashboard drawer sheet panel
-  void _showSettingsBottomSheet(BuildContext context) {
+  void _showSettingsBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -201,12 +202,12 @@ class ProfileScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Account Settings', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.black, color: Colors.black)),
+                Text('Account Settings', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black)),
                 const SizedBox(height: 20),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined, color: Colors.black87),
                   title: Text('Edit Profile Tags', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
-                  onPressed: () {
+                  onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileSetupScreen(isEditing: true)));
                   },
@@ -218,7 +219,20 @@ class ProfileScreen extends StatelessWidget {
                 const Divider(height: 24),
                 ListTile(
                   leading: const Icon(Icons.logout_outlined, color: Color(0xFFE53E3E)),
-                  title: Text('Sign Out', style: GoogleFonts.inter(fontWeight: FontWeight.black, fontSize: 15, color: const Color(0xFFE53E3E))),
-                  onPressed: () {
+                  title: Text('Sign Out', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFFE53E3E))),
+                  onTap: () {
                     Navigator.of(context).pop();
-Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const OnboardingScreen()), (route) => false);},),],),),);},);}}
+                    // AuthGate (main.dart) watches auth state and swaps
+                    // back to OnboardingScreen automatically once this
+                    // resolves — no manual navigation needed.
+                    ref.read(authRepositoryProvider).signOut();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_providers.dart';
 import 'startup_profile_setup_screen.dart';
 import 'notification_screen.dart';
-import 'onboarding_screen.dart';
 
 /// Presentation profile tab showing corporate venture stats, operational metadata fields, and actions.
-class StartupMyProfileScreen extends StatelessWidget {
+class StartupMyProfileScreen extends ConsumerWidget {
   const StartupMyProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const Color companyThemeColor = Color(0xFF10B981);
+  Widget build(BuildContext context, WidgetRef ref) {
+    const Color companyThemeColor = Color(0xFF0C4E33);
     const Color aluDeepGreen = Color(0xFF0C4E33);
     const Color aluOrange = Color(0xFFF19E18);
 
@@ -30,11 +31,11 @@ class StartupMyProfileScreen extends StatelessWidget {
               children: [
                 // Top Utilities Header Icon Controls Row Block
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 24),
-                      onPressed: () => _showStartupSettingsBottomSheet(context),
+                      onPressed: () => _showStartupSettingsBottomSheet(context, ref),
                     ),
                     IconButton(
                       icon: const Icon(Icons.notifications_none_outlined, color: Colors.white, size: 26),
@@ -52,13 +53,13 @@ class StartupMyProfileScreen extends StatelessWidget {
                   width: 76,
                   height: 76,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     'ZH',
-                    style: GoogleFonts.inter(color: Colors.white, fontSize: 26, fontWeight: FontWeight.black),
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -69,13 +70,13 @@ class StartupMyProfileScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Zuri Health',
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.black),
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(color: aluOrange, borderRadius: BorderRadius.circular(4)),
-                      child: Text('ALU VERIFIED', style: GoogleFonts.inter(color: Colors.black, fontSize: 8, fontWeight: FontWeight.black)),
+                      child: Text('ALU VERIFIED', style: GoogleFonts.inter(color: Colors.black, fontSize: 8, fontWeight: FontWeight.w900)),
                     ),
                   ],
                 ),
@@ -85,7 +86,7 @@ class StartupMyProfileScreen extends StatelessWidget {
                 Text(
                   'Democratizing healthcare access across Africa',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.9), fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 24),
 
@@ -109,7 +110,7 @@ class StartupMyProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('About', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.black)),
+                  Text('About', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
                   Text(
                     'Zuri Health is a digital health platform connecting patients across sub-Saharan Africa with certified doctors via telemedicine. We operate in Rwanda, Kenya, and Nigeria with over 40,000 monthly active users.',
@@ -118,14 +119,14 @@ class StartupMyProfileScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Industry details summary panel tags block array
-                  Text('Enterprise Specifications', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.black)),
+                  Text('Enterprise Specifications', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
                   _buildSpecificationRow('Sector', '🏥 HealthTech'),
                   _buildSpecificationRow('Location', '📍 Kigali, Rwanda'),
                   _buildSpecificationRow('Company Size', '👥 12 people'),
                   const SizedBox(height: 24),
 
-                  Text('Domains We Work In', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.black)),
+                  Text('Domains We Work In', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8.0,
@@ -149,9 +150,9 @@ class StartupMyProfileScreen extends StatelessWidget {
   Widget _buildHeaderMetricCell(String value, String label) {
     return Column(
       children: [
-        Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 20, fontWeight: FontWeight.black)),
+        Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
         const SizedBox(height: 2),
-        Text(label, style: GoogleFonts.inter(color: Colors.white.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(label, style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -169,7 +170,7 @@ class StartupMyProfileScreen extends StatelessWidget {
   }
 
   /// Displays the interactive contextual choices menu bottom drawer overlay sheet
-  void _showStartupSettingsBottomSheet(BuildContext context) {
+  void _showStartupSettingsBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -183,13 +184,13 @@ class StartupMyProfileScreen extends StatelessWidget {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Startup Control Panel', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.black)),
+                  child: Text('Startup Control Panel', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900)),
                 ),
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(Icons.storefront_outlined, color: Colors.black87),
                   title: Text('Edit Startup Profile Details', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
-                  onPressed: () {
+                  onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const StartupProfileSetupScreen(isEditing: true)));
                   },
@@ -197,13 +198,14 @@ class StartupMyProfileScreen extends StatelessWidget {
                 const Divider(height: 16),
                 ListTile(
                   leading: const Icon(Icons.logout_outlined, color: Color(0xFFE53E3E)),
-                  title: Text('Sign Out Venture Session', style: GoogleFonts.inter(fontWeight: FontWeight.black, fontSize: 15, color: const Color(0xFFE53E3E))),
-                  onPressed: () {
+                  title: Text('Sign Out Venture Session', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFFE53E3E))),
+                  onTap: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const OnboardingScreen()), 
-                      (route) => false,
-                    );
+                    // No manual navigation to OnboardingScreen needed here —
+                    // signOut() flips authStateProvider to null, and
+                    // AuthGate (main.dart) reacts by swapping the screen
+                    // for us automatically.
+                    ref.read(authRepositoryProvider).signOut();
                   },
                 ),
               ],

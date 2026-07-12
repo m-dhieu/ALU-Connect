@@ -1,26 +1,32 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_providers.dart';
 import 'register_screen.dart';
-import 'startup_dashboard_screen.dart' hide SizedBox, Text, BoxDecoration;
-import 'home_screen.dart' hide Text; 
 
 /// Sign In screen for ALU Connect.
 /// Restores active sessions for authenticated students or ecosystem startups.
-class LoginScreen extends StatefulWidget {
+///
+/// Note there's no role selector here anymore that navigates anywhere —
+/// AuthGate in main.dart is what decides where a signed-in user lands
+/// (HomeScreen vs StartupDashboardScreen), by reading their stored role
+/// from Firestore. This screen's only job is to authenticate the account.
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _selectedRole = 'student';
   bool _isPasswordObscured = true;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -29,43 +35,69 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Login doesn't know the account's role until *after* authenticating
+  // (AuthGate reads it from Firestore), so it can't enforce the
+  // @alueducation.com restriction the way registration does — a startup
+  // founder could have signed up with any email address. This just checks
+  // the field looks like a real email at all.
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter your ALU email';
+      return 'Please enter your email';
     }
-    final email = value.trim().toLowerCase();
-    if (!email.endsWith('@alueducation.com') &&
-        !email.endsWith('@alu_student.com')) {
-      return 'Must be a valid @alueducation.com or @alu_student.com email';
+    if (!_emailPattern.hasMatch(value.trim())) {
+      return 'Please enter a valid email address';
     }
     return null;
   }
 
-  void _handleLoginSubmission() {
+  Future<void> _handleLoginSubmission() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final String emailAddress = _emailController.text.trim();
-    final String accountRole = _selectedRole;
+    setState(() => _isSubmitting = true);
 
-    // In a real app, you would authenticate with Firebase here.
-    // For now, route based on role.
+    try {
+      await ref.read(authRepositoryProvider).signInWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+      // No manual navigation here on purpose: signing in flips
+      // authStateProvider, and AuthGate (in main.dart) is watching that —
+      // it swaps to HomeScreen or StartupDashboardScreen on its own once
+      // the matching Firestore profile loads.
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_authErrorMessage(e))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Something went wrong: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
 
-    if (accountRole == 'startup') {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const StartupDashboardScreen(),
-        ),
-        (route) => false,
-      );
-    } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-        (route) => false,
-      );
+  /// FirebaseAuthException.message is written for developers, not users
+  /// ("The password is invalid or the user does not have a password.") —
+  /// this maps the handful of codes we actually expect to friendlier text.
+  String _authErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+      case 'invalid-email':
+        return 'That email address looks invalid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      default:
+        return 'Sign in failed: ${e.message ?? e.code}';
     }
   }
 
@@ -102,7 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     const Color aluDeepGreen = Color(0xFF0C4E33);
-    const Color aluLightBg = Color(0xFFF8F9FA);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -130,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: GoogleFonts.inter(
                     color: Colors.black,
                     fontSize: 32,
-                    fontWeight: FontWeight.extrabold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -144,103 +175,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Selection Segment Title
-                Text(
-                  'I AM A',
-                  style: GoogleFonts.inter(
-                    color: Colors.grey.shade700,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Role Toggle Row Component Matrix
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedRole = 'student'),
-                        child: Container(
-                          height: 54,
-                          decoration: BoxDecoration(
-                            color: _selectedRole == 'student'
-                                ? aluDeepGreen
-                                : aluLightBg,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _selectedRole == 'student'
-                                  ? aluDeepGreen
-                                  : Colors.grey.shade200,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🎓', style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Student',
-                                style: GoogleFonts.inter(
-                                  color: _selectedRole == 'student'
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedRole = 'startup'),
-                        child: Container(
-                          height: 54,
-                          decoration: BoxDecoration(
-                            color: _selectedRole == 'startup'
-                                ? aluDeepGreen
-                                : aluLightBg,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _selectedRole == 'startup'
-                                  ? aluDeepGreen
-                                  : Colors.grey.shade200,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🚀', style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Startup',
-                                style: GoogleFonts.inter(
-                                  color: _selectedRole == 'startup'
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
                 // Email Form Entry Module
                 Text(
-                  'ALU EMAIL',
+                  'EMAIL',
                   style: GoogleFonts.inter(
                     color: Colors.grey.shade700,
                     fontSize: 12,
@@ -253,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
-                  decoration: _buildInputDecoration('a.diallo@alueducation.com'),
+                  decoration: _buildInputDecoration('you@example.com'),
                   validator: _validateEmail,
                 ),
                 const SizedBox(height: 24),
@@ -300,22 +237,29 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _handleLoginSubmission,
+                    onPressed: _isSubmitting ? null : _handleLoginSubmission,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: aluDeepGreen,
+                      disabledBackgroundColor: aluDeepGreen.withValues(alpha: 0.6),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: Text(
-                      'Sign in',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : Text(
+                            'Sign in',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 24),

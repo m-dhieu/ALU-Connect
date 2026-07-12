@@ -45,7 +45,7 @@ class SuccessScreen extends StatelessWidget {
                 style: GoogleFonts.inter(
                   color: Colors.black,
                   fontSize: 28,
-                  // FIXED: Changed from FontWeight.black to FontWeight.w900
+                  // FIXED: Changed from FontWeight.w900 to FontWeight.w900
                   fontWeight: FontWeight.w900, 
                 ),
               ),

@@ -18,10 +18,17 @@ class AppliedScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        // AppBar's default toolbarHeight (56) is only tall enough for a
+        // single line of title text. Our two-line title (28px heading +
+        // subtitle) was overflowing that box, which is why the subtitle
+        // was getting clipped off — not actually invisible, just rendered
+        // outside the AppBar's bounds. Giving it explicit height fixes that.
+        toolbarHeight: 96,
         title: Padding(
-          padding: const EdgeInsets.only(left: 8.0, top: 16.0),
+          padding: const EdgeInsets.only(left: 8.0, top: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'My Applications',
@@ -31,7 +38,7 @@ class AppliedScreen extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 '2 submitted · 1 active',
                 style: GoogleFonts.inter(
@@ -43,16 +50,12 @@ class AppliedScreen extends StatelessWidget {
             ],
           ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(20),
-          child: Container(),
-        ),
       ),
       body: Column(
         children: [
           // Top Summary KPI Metrics Block Matrix Row
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
             child: Row(
               children: [
                 _buildSummaryKpiCard('2', 'Applied', const Color(0xFFF8F9FA)),
@@ -73,7 +76,6 @@ class AppliedScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
 
           // Scrollable Application Cards Feed List
           Expanded(
@@ -83,7 +85,7 @@ class AppliedScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final app = OpportunityRepository.myApplications[index];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
+                  padding: const EdgeInsets.only(bottom: 18.0),
                   child: _buildApplicationProgressCard(context, app, aluDeepGreen),
                 );
               },
@@ -103,10 +105,10 @@ class AppliedScreen extends StatelessWidget {
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
         decoration: BoxDecoration(
           color: cardBg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
@@ -114,11 +116,11 @@ class AppliedScreen extends StatelessWidget {
               metricValue,
               style: GoogleFonts.inter(
                 color: valueColor ?? Colors.black,
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               metricLabel,
               style: GoogleFonts.inter(
@@ -152,12 +154,12 @@ class AppliedScreen extends StatelessWidget {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(18.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.grey.shade200, width: 1),
         ),
         child: Column(
@@ -196,17 +198,17 @@ class AppliedScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Company Avatar Emblem & Identity Description Module
             Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: app['logoColor'] ?? Colors.grey,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -214,11 +216,11 @@ class AppliedScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,12 +233,12 @@ class AppliedScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         app['roleTitle'] ?? 'Position Role Title',
                         style: GoogleFonts.inter(
                           color: Colors.black,
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -245,11 +247,13 @@ class AppliedScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
 
             // Stepper Node Timelines Pipeline Progress Tracker Engine Layout Block
             _buildVisualWorkflowStepper(app['statusStep'] ?? 0, greenTheme),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
+            Divider(color: Colors.grey.shade100, height: 1),
+            const SizedBox(height: 14),
 
             // Justification Text String Rationale Capture Snippet
             Text(
@@ -257,10 +261,11 @@ class AppliedScreen extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(
-                color: Colors.grey.shade500,
-                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w400,
                 fontStyle: FontStyle.italic,
+                height: 1.4,
               ),
             ),
           ],
@@ -337,23 +342,27 @@ class AppliedScreen extends StatelessWidget {
         const SizedBox(height: 8),
 
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: stepsList.asMap().entries.map((entry) {
             final int index = entry.key;
             final bool isActiveTag = index == activeStepIndex;
 
-            return SizedBox(
-              width: 60,
+            // Expanded (not a fixed-width SizedBox) so each label gets an
+            // equal, full share of the card's width — a fixed 60px box was
+            // too narrow for "Under Review", which is why it was clipping
+            // to "Under Re...". Two-line wrapping is the fallback instead
+            // of an ellipsis, so the label stays readable if it's still tight.
+            return Expanded(
               child: Text(
                 entry.value,
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
                   color: isActiveTag
                       ? Colors.black87
                       : Colors.grey.shade400,
-                  fontSize: 10,
+                  fontSize: 10.5,
+                  height: 1.25,
                   fontWeight: isActiveTag
                       ? FontWeight.bold
                       : FontWeight.w500,

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 class OpportunityRepository {
   // Static list tracking active ALU recognized startup entries
   static final List<Map<String, dynamic>> aluStartups = [
-    {'name': 'Zuri', 'init': 'ZH', 'color': const Color(0xFF10B981), 'verified': true},
-    {'name': 'GreenRoute', 'init': 'GR', 'color': const Color(0xFF059669), 'verified': true},
-    {'name': 'Soma', 'init': 'SS', 'color': const Color(0xFF8B5CF6), 'verified': true},
-    {'name': 'FarmWave', 'init': 'FW', 'color': const Color(0xFFD97706), 'verified': true},
-    {'name': 'Nuru', 'init': 'NC', 'color': const Color(0xFF2563EB), 'verified': true},
-    {'name': 'Kuja', 'init': 'KC', 'color': const Color(0xFFEF4444), 'verified': false},
+    {'name': 'Zuri', 'init': 'ZH', 'color': const Color(0xFF0C4E33), 'verified': true},
+    {'name': 'GreenRoute', 'init': 'GR', 'color': const Color(0xFF1F8A5F), 'verified': true},
+    {'name': 'Soma', 'init': 'SS', 'color': const Color(0xFF445566), 'verified': true},
+    {'name': 'FarmWave', 'init': 'FW', 'color': const Color(0xFFB7791F), 'verified': true},
+    {'name': 'Nuru', 'init': 'NC', 'color': const Color(0xFF2F6F4E), 'verified': true},
+    {'name': 'Kuja', 'init': 'KC', 'color': const Color(0xFF9CA3AF), 'verified': false},
   ];
 
   // Static list compiling complete multidimensional marketplace metrics
@@ -17,7 +17,7 @@ class OpportunityRepository {
     {
       'id': 'opp_1',
       'logoInit': 'ZH',
-      'logoColor': const Color(0xFF10B981),
+      'logoColor': const Color(0xFF0C4E33),
       'companyName': 'Zuri Health',
       'roleTitle': 'Frontend Engineer Intern',
       'workplaceSetting': 'On-site',
@@ -32,7 +32,7 @@ class OpportunityRepository {
     {
       'id': 'opp_2',
       'logoInit': 'ZH',
-      'logoColor': const Color(0xFF10B981),
+      'logoColor': const Color(0xFF0C4E33),
       'companyName': 'Zuri Health',
       'roleTitle': 'Product Design Intern',
       'workplaceSetting': 'On-site',
@@ -47,7 +47,7 @@ class OpportunityRepository {
     {
       'id': 'opp_3',
       'logoInit': 'GR',
-      'logoColor': const Color(0xFF059669),
+      'logoColor': const Color(0xFF1F8A5F),
       'companyName': 'GreenRoute',
       'roleTitle': 'Operations & Logistics Analyst',
       'workplaceSetting': 'On-site',
@@ -62,7 +62,7 @@ class OpportunityRepository {
     {
       'id': 'opp_4',
       'logoInit': 'FW',
-      'logoColor': const Color(0xFFD97706),
+      'logoColor': const Color(0xFFB7791F),
       'companyName': 'FarmWave',
       'roleTitle': 'ML Research Intern',
       'workplaceSetting': 'On-site',
@@ -77,7 +77,7 @@ class OpportunityRepository {
     {
       'id': 'opp_5',
       'logoInit': 'NC',
-      'logoColor': const Color(0xFF2563EB),
+      'logoColor': const Color(0xFF2F6F4E),
       'companyName': 'Nuru Capital',
       'roleTitle': 'Community Engagement Coordinator',
       'workplaceSetting': 'On-site',
@@ -92,7 +92,7 @@ class OpportunityRepository {
     {
       'id': 'opp_6',
       'logoInit': 'SS',
-      'logoColor': const Color(0xFF8B5CF6),
+      'logoColor': const Color(0xFF445566),
       'companyName': 'Soma Studio',
       'roleTitle': 'Content Creator & Curriculum Researcher',
       'workplaceSetting': 'Remote',
@@ -107,7 +107,7 @@ class OpportunityRepository {
     {
       'id': 'opp_7',
       'logoInit': 'SS',
-      'logoColor': const Color(0xFF8B5CF6),
+      'logoColor': const Color(0xFF445566),
       'companyName': 'Soma Studio',
       'roleTitle': 'Backend Node.js Developer',
       'workplaceSetting': 'Remote',
@@ -122,7 +122,7 @@ class OpportunityRepository {
     {
       'id': 'opp_8',
       'logoInit': 'KC',
-      'logoColor': const Color(0xFFEF4444),
+      'logoColor': const Color(0xFF9CA3AF),
       'companyName': 'Kuja Collective',
       'roleTitle': 'Systems Integration Tester',
       'workplaceSetting': 'On-site',
@@ -135,14 +135,13 @@ class OpportunityRepository {
       'daysLeft': '5d left',
     },
   ];
-}
 
   // Static list tracking active applications submitted by the logged-in student
-  final List<Map<String, dynamic>> myApplications = <Map<String, dynamic>>[
+  static final List<Map<String, dynamic>> myApplications = <Map<String, dynamic>>[
     {
       'id': 'opp_x1',
       'logoInit': 'SS',
-      'logoColor': const Color(0xFF8B5CF6),
+      'logoColor': const Color(0xFF445566),
       'companyName': 'Soma Studio',
       'roleTitle': 'Flutter Developer Intern',
       'workplaceSetting': 'Remote',
@@ -161,7 +160,7 @@ class OpportunityRepository {
     {
       'id': 'opp_4', // Matches the exact FarmWave ID from explore screen mapping rules
       'logoInit': 'FW',
-      'logoColor': const Color(0xFFD97706),
+      'logoColor': const Color(0xFFB7791F),
       'companyName': 'FarmWave',
       'roleTitle': 'ML Research Intern',
       'workplaceSetting': 'On-site',
@@ -178,3 +177,4 @@ class OpportunityRepository {
       'justificationText': '"My ML coursework and crop disease detection project make me a strong candidate for this role at FarmWave."',
     }
   ];
+}

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_screen.dart';
+import 'register_screen.dart';
 
 /// The welcoming landing screen for the ALU Connect Platform.
 /// Styled precisely according to the brand guidelines with deep forest greens.
@@ -26,7 +28,7 @@ class OnboardingScreen extends StatelessWidget {
                 Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/images/onboarding_bg.jpg'),
+                      image: AssetImage('assets/images/onboarding_bg.jpeg'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -38,8 +40,8 @@ class OnboardingScreen extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        aluDeepGreen.withOpacity(0.85),
-                        aluDeepGreen.withOpacity(0.90),
+                        aluDeepGreen.withValues(alpha: 0.85),
+                        aluDeepGreen.withValues(alpha: 0.90),
                       ],
                     ),
                   ),
@@ -65,7 +67,7 @@ class OnboardingScreen extends StatelessWidget {
                                 'A',
                                 style: GoogleFonts.inter(
                                   color: Colors.black,
-                                  fontWeight: FontWeight.black,
+                                  fontWeight: FontWeight.w900,
                                   fontSize: 18,
                                 ),
                               ),
@@ -88,7 +90,7 @@ class OnboardingScreen extends StatelessWidget {
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 40,
-                            fontWeight: FontWeight.extrabold,
+                            fontWeight: FontWeight.w800,
                             height: 1.15,
                           ),
                         ),
@@ -97,7 +99,7 @@ class OnboardingScreen extends StatelessWidget {
                         Text(
                           "Connecting ALU students with student-led startups building Africa's future.",
                           style: GoogleFonts.inter(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                             height: 1.4,
@@ -127,7 +129,9 @@ class OnboardingScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Routing action placeholder for the login screen workflow
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: aluDeepGreen,
@@ -153,7 +157,9 @@ class OnboardingScreen extends StatelessWidget {
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () {
-                        // Routing action placeholder for the registration workflow
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         backgroundColor: aluLightBg,
@@ -196,19 +202,3 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 }
-
----
-
-### Step 2: Connect Login Screen from Onboarding
-Open your `lib/screens/onboarding_screen.dart` file and configure your primary **Sign in** button element callback parameter so it links right into the login screen interface stack:
-
-```dart
-// Modify the ElevatedButton inside lib/screens/onboarding_screen.dart:
-ElevatedButton(
-  onPressed: () {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  },
-  // ... leave your existing UI decorations unchanged
-)

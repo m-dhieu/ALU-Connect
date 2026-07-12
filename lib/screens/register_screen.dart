@@ -1,26 +1,31 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/app_user.dart';
+import '../providers/auth_providers.dart';
 import 'profile_setup_screen.dart';
 import 'startup_profile_setup_screen.dart';
 
 /// Account registration screen
 /// institutional email validation for the ALU
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _selectedRole = 'student';
+  UserRole _selectedRole = UserRole.student;
   bool _isPasswordObscured = true;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -30,47 +35,112 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  String? _validateAluEmail(String? value) {
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  /// Students must register with a real @alueducation.com or
+  /// @alustudent.com address — that's the whole mechanism by which "only
+  /// ALU students" access the platform, since we have no other way to
+  /// check institutional membership. Founders aren't ALU students, so
+  /// they're only held to looking like a real email; their legitimacy is
+  /// instead gated by the isVerifiedStartup flag (an admin manually
+  /// verifies each startup — see AppUser's doc comment).
+  static const List<String> _aluStudentDomains = ['@alueducation.com', '@alustudent.com'];
+
+  String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter your ALU email address';
+      return _selectedRole == UserRole.student
+          ? 'Please enter your ALU email address'
+          : 'Please enter your email address';
     }
 
     final email = value.trim().toLowerCase();
 
-    if (!email.endsWith('@alueducation.com') &&
-        !email.endsWith('@alu_student.com')) {
-      return 'Must be a valid @alueducation.com or @alu_student.com email';
+    if (_selectedRole == UserRole.student) {
+      if (!_aluStudentDomains.any(email.endsWith)) {
+        return 'Students must register with an @alueducation.com or @alustudent.com email';
+      }
+      return null;
+    }
+
+    if (!_emailPattern.hasMatch(email)) {
+      return 'Please enter a valid email address';
     }
     return null;
   }
 
-  void _handleRegistrationSubmission() {
+  Future<void> _handleRegistrationSubmission() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final String fullName = _nameController.text.trim();
-    final String emailAddress = _emailController.text.trim();
-    final String accountRole = _selectedRole;
+    setState(() => _isSubmitting = true);
 
-    // For now, route based on role.
-    // after create the user in Firebase here.
+    try {
+      await ref.read(authRepositoryProvider).registerWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            fullName: _nameController.text.trim(),
+            role: _selectedRole,
+          );
 
-    if (accountRole == 'startup') {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) =>
-              const StartupProfileSetupScreen(isEditing: false),
-        ),
-        (route) => false,
+      if (!mounted) return;
+
+      // Registration succeeds -> creates the Auth account AND the Firestore
+      // profile doc in one call (see AuthRepository.registerWithEmail).
+      // From here we still push straight to profile setup ourselves, rather
+      // than waiting on AuthGate, because a brand-new account should always
+      // land on "finish your profile" once, regardless of what AuthGate
+      // would otherwise route to.
+      if (_selectedRole == UserRole.startup) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const StartupProfileSetupScreen(isEditing: false),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const ProfileSetupScreen(isEditing: false),
+          ),
+          (route) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_authErrorMessage(e))),
       );
-    } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const ProfileSetupScreen(isEditing: false),
-        ),
-        (route) => false,
+    } on FirebaseException catch (e) {
+      // Covers Firestore errors from the profile-doc write (e.g. rejected
+      // by firestore.rules) — a different exception type than
+      // FirebaseAuthException, so it needs its own catch clause or it
+      // would previously slip through uncaught, leaving the button stuck
+      // on its loading spinner with no feedback at all.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not create your profile: ${e.message ?? e.code}')),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Something went wrong: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  String _authErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'An account already exists for that email.';
+      case 'invalid-email':
+        return 'That email address looks invalid.';
+      case 'weak-password':
+        return 'Please choose a stronger password.';
+      default:
+        return 'Registration failed: ${e.message ?? e.code}';
     }
   }
 
@@ -149,7 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.inter(
                     color: Colors.black,
                     fontSize: 32,
-                    fontWeight: FontWeight.extrabold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -181,16 +251,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () =>
-                            setState(() => _selectedRole = 'student'),
+                            setState(() => _selectedRole = UserRole.student),
                         child: Container(
                           height: 54,
                           decoration: BoxDecoration(
-                            color: _selectedRole == 'student'
+                            color: _selectedRole == UserRole.student
                                 ? aluDeepGreen
                                 : aluLightBg,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _selectedRole == 'student'
+                              color: _selectedRole == UserRole.student
                                   ? aluDeepGreen
                                   : Colors.grey.shade200,
                             ),
@@ -203,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               Text(
                                 'Student',
                                 style: GoogleFonts.inter(
-                                  color: _selectedRole == 'student'
+                                  color: _selectedRole == UserRole.student
                                       ? Colors.white
                                       : Colors.black87,
                                   fontWeight: FontWeight.bold,
@@ -219,16 +289,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () =>
-                            setState(() => _selectedRole = 'startup'),
+                            setState(() => _selectedRole = UserRole.startup),
                         child: Container(
                           height: 54,
                           decoration: BoxDecoration(
-                            color: _selectedRole == 'startup'
+                            color: _selectedRole == UserRole.startup
                                 ? aluDeepGreen
                                 : aluLightBg,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _selectedRole == 'startup'
+                              color: _selectedRole == UserRole.startup
                                   ? aluDeepGreen
                                   : Colors.grey.shade200,
                             ),
@@ -241,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               Text(
                                 'Startup',
                                 style: GoogleFonts.inter(
-                                  color: _selectedRole == 'startup'
+                                  color: _selectedRole == UserRole.startup
                                       ? Colors.white
                                       : Colors.black87,
                                   fontWeight: FontWeight.bold,
@@ -282,7 +352,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Field Section Label: Email Entry Form Input Layout Block
                 Text(
-                  'ALU EMAIL',
+                  'EMAIL',
                   style: GoogleFonts.inter(
                     color: Colors.grey.shade700,
                     fontSize: 12,
@@ -295,9 +365,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
-                  decoration:
-                      _buildInputDecoration('a.diallo@alueducation.com'),
-                  validator: _validateAluEmail,
+                  decoration: _buildInputDecoration(
+                    _selectedRole == UserRole.student
+                        ? 'a.diallo@alueducation.com'
+                        : 'you@yourstartup.com',
+                  ),
+                  validator: _validateEmail,
                 ),
                 const SizedBox(height: 24),
 
@@ -342,22 +415,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _handleRegistrationSubmission,
+                    onPressed: _isSubmitting ? null : _handleRegistrationSubmission,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: aluDeepGreen,
+                      disabledBackgroundColor: aluDeepGreen.withValues(alpha: 0.6),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: Text(
-                      'Create account',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : Text(
+                            'Create account',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 24),

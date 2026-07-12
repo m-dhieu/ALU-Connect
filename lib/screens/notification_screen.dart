@@ -45,7 +45,7 @@ class NotificationScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         title: Text(
           'Notifications',
-          style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.black, fontSize: 20),
+          style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 20),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
@@ -53,7 +53,7 @@ class NotificationScreen extends StatelessWidget {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.right: 16.0,
+            padding: const EdgeInsets.only(right: 16.0),
             child: Center(
               child: Text(
                 'Mark read',
@@ -75,7 +75,7 @@ class NotificationScreen extends StatelessWidget {
               color: item['isUnread'] ? const Color(0xFFF4FBF7) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: item['isUnread'] ? aluDeepGreen.withOpacity(0.15) : Colors.grey.shade100,
+                color: item['isUnread'] ? aluDeepGreen.withValues(alpha: 0.15) : Colors.grey.shade100,
                 width: 1.5,
               ),
             ),
@@ -95,9 +95,9 @@ class NotificationScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.between,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(item['title'], style: GoogleFonts.inter(fontWeight: FontWeight.black, fontSize: 14, color: Colors.black)),
+                          Text(item['title'], style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)),
                           Text(item['time'], style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.w500)),
                         ],
                       ),

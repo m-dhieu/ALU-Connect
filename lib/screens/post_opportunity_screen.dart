@@ -85,7 +85,7 @@ class _PostOpportunityScreenState extends State<PostOpportunityScreen> {
                 // Header Typography Elements
                 Text(
                   'Post an opportunity',
-                  style: GoogleFonts.inter(color: Colors.black, fontSize: 32, fontWeight: FontWeight.extrabold),
+                  style: GoogleFonts.inter(color: Colors.black, fontSize: 32, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -244,7 +244,51 @@ class _PostOpportunityScreenState extends State<PostOpportunityScreen> {
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Text(
         labelText,
-style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),),);}/// Generates specialized form chip toggle components reactively matching brand highlightsWidget buildSelectionChip(String label, bool isSelected, Color activeColor, Color idleColor, VoidCallback onTap) {return ChoiceChip(label: Container(width: double.infinity,alignment: Alignment.center,
-child: Text(label),),selected: isSelected,onSelected: () => onTap(),selectedColor: activeColor,backgroundColor: idleColor,labelStyle: GoogleFonts.inter(color: isSelected ? Colors.white : Colors.grey.shade700,fontSize: 13,fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,),shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),side: BorderSide(color: isSelected ? activeColor : Colors.grey.shade200),
-),showCheckmark: false,);}InputDecoration _buildInputDecoration(String hintText) {return InputDecoration(hintText: hintText,hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14, height: 1.3),filled: true,fillColor: Colors.white,contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
-),focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),borderSide: const BorderSide(color: Color(0xFF0C4E33), width: 2),),);}}
+        style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+      ),
+    );
+  }
+
+  /// Generates specialized form chip toggle components reactively matching brand highlights
+  Widget _buildSelectionChip(String label, bool isSelected, Color activeColor, Color idleColor, VoidCallback onTap) {
+    return ChoiceChip(
+      label: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        child: Text(label),
+      ),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      selectedColor: activeColor,
+      backgroundColor: idleColor,
+      labelStyle: GoogleFonts.inter(
+        color: isSelected ? Colors.white : Colors.grey.shade700,
+        fontSize: 13,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: isSelected ? activeColor : Colors.grey.shade200),
+      ),
+      showCheckmark: false,
+    );
+  }
+
+  InputDecoration _buildInputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14, height: 1.3),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF0C4E33), width: 2),
+      ),
+    );
+  }
+}

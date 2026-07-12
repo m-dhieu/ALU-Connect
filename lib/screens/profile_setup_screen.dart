@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'home_screen.dart';
 
 /// Interactive configuration terminal used during both initial onboarding workflows
 /// and later profile modification settings.
@@ -50,7 +51,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             children: [
               Text(
                 widget.isEditing ? 'Update your ecosystem details' : 'Complete your profile',
-                style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.black, color: Colors.black),
+                style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.black),
               ),
               const SizedBox(height: 6),
               Text(
@@ -105,7 +106,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   return FilterChip(
                     label: Text(skill),
                     selected: isSelected,
-                    selectedColor: aluDeepGreen.withOpacity(0.15),
+                    selectedColor: aluDeepGreen.withValues(alpha: 0.15),
                     checkmarkColor: aluDeepGreen,
                     labelStyle: GoogleFonts.inter(
                       fontSize: 13, 

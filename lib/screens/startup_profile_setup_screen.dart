@@ -73,7 +73,7 @@ class _StartupProfileSetupScreenState extends State<StartupProfileSetupScreen> {
               children: [
                 Text(
                   widget.isEditing ? 'Update business profiles' : 'Register your venture',
-                  style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.black, color: Colors.black),
+                  style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.black),
                 ),
                 const SizedBox(height: 6),
                 Text(

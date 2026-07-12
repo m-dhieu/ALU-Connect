@@ -1,0 +1,56 @@
+rules_version = '2';
+
+// Firestore security rules for ALU Connect.
+//
+// Firestore has no server-side app code of its own — every read/write from
+// the Flutter app hits these rules directly, so this file *is* the backend
+// authorization layer. If something isn't allowed here, no client-side
+// validation in Dart can compensate for it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users/{uid} — one profile document per account, keyed by the same
+    // uid Firebase Auth assigns (see AuthRepository.registerWithEmail).
+    match /users/{uid} {
+      // Any signed-in user can read any profile. This is intentional, not
+      // an oversight: the app needs to show a startup's name/verification
+      // badge on opportunity cards to students who aren't that startup.
+      allow read: if request.auth != null;
+
+      // You may only create the document that matches your own uid — this
+      // stops one account from writing a profile for someone else's uid.
+      // isVerifiedStartup must be false on creation: a startup cannot mark
+      // itself verified at signup. See AppUser's doc comment for why that
+      // field exists.
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.isVerifiedStartup == false;
+
+      // You may update your own document, but never the isVerifiedStartup
+      // field — that can only change through the Firebase console/Admin
+      // SDK (i.e. a human reviewing the startup), not from the client.
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.isVerifiedStartup == resource.data.isVerifiedStartup;
+
+      allow delete: if false;
+    }
+
+    // startups/{startupId} — public directory of ALU-recognized ventures
+    // (separate from users/{uid}: a startup's public listing can exist
+    // independent of which founder account currently manages it).
+    match /startups/{startupId} {
+      allow read: if request.auth != null;
+      // No client writes yet — these are seeded/managed by an admin until
+      // we build the "claim your startup listing" flow.
+      allow write: if false;
+    }
+
+    // opportunities/{opportunityId} — the internship/role postings students
+    // browse. Same story: read-only from the client for now.
+    match /opportunities/{opportunityId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}
