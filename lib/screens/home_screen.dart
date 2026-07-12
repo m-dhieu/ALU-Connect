@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/opportunity_data.dart'; // Import decoupled data layer file
+import '../providers/opportunity_providers.dart';
 import 'startup_profile_screen.dart';
 import 'opportunity_details_screen.dart';
 import 'applied_screen.dart';
 import 'profile_screen.dart';
 
 /// Main Dashboard container screen for ALU students.
-/// Fetches mock items from models layer and filters layouts reactively.
-class HomeScreen extends StatefulWidget {
+/// Combines the static demo listings with real Firestore-backed postings.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
   String _selectedJobType = 'All';
   String _selectedCategory = 'Engineering'; // Set default highlights matching your exact screenshot view
@@ -34,8 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProfileScreen(),
     ];
 
-    // Filter local lists using data arrays held inside the external repository file
-    final List<Map<String, dynamic>> filteredOpportunities = OpportunityRepository.allOpportunities.where((opportunity) {
+    // Real founder-posted opportunities from Firestore, converted into the
+    // same Map shape the static demo listings use (see
+    // Opportunity.toDisplayMap()) so both can flow through one filter and
+    // one set of card widgets below.
+    final postedOpportunities = ref.watch(allPostedOpportunitiesProvider).value ?? const [];
+    final List<Map<String, dynamic>> combinedOpportunities = [
+      ...postedOpportunities.map((o) => o.toDisplayMap()),
+      ...OpportunityRepository.allOpportunities,
+    ];
+
+    final List<Map<String, dynamic>> filteredOpportunities = combinedOpportunities.where((opportunity) {
       final bool matchesCategory = _selectedCategory == 'All' || opportunity['category'] == _selectedCategory;
       final bool matchesJobType = _selectedJobType == 'All' || opportunity['jobType'] == _selectedJobType;
       final bool matchesRemote = !_isRemoteSelected || opportunity['workplaceSetting'] == 'Remote';

@@ -47,10 +47,22 @@ service cloud.firestore {
     }
 
     // opportunities/{opportunityId} — the internship/role postings students
-    // browse. Same story: read-only from the client for now.
+    // browse. Founders can create and manage their own listings; the demo
+    // startups seeded directly in Firestore (no postedByUid) stay
+    // read-only since no account owns them.
     match /opportunities/{opportunityId} {
       allow read: if request.auth != null;
-      allow write: if false;
+
+      // Posting isn't gated on isVerifiedStartup on purpose — a brand-new
+      // founder account should be able to finish registration and post an
+      // opportunity right away, the same way the rest of the app treats a
+      // freshly created account. isVerifiedStartup exists to control the
+      // "ALU VERIFIED" badge shown to students, not to block posting.
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.postedByUid;
+
+      allow update, delete: if request.auth != null
+                             && request.auth.uid == resource.data.postedByUid;
     }
   }
 }

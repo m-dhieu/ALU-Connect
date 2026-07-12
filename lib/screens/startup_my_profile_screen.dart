@@ -11,11 +11,21 @@ class StartupMyProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const Color companyThemeColor = Color(0xFF0C4E33);
     const Color aluDeepGreen = Color(0xFF0C4E33);
     const Color aluOrange = Color(0xFFF19E18);
 
-    final List<String> domains = ['Engineering', 'Design', 'Marketing'];
+    final profile = ref.watch(currentUserProfileProvider).value;
+    final String founderName = profile?.fullName ?? 'Your venture';
+    final bool isVerified = profile?.isVerifiedStartup ?? false;
+    // Avatar initials from the founder's name (e.g. "Amara Diallo" -> "AD"),
+    // rather than a fixed "ZH" placeholder.
+    final String initials = founderName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .take(2)
+        .map((w) => w[0].toUpperCase())
+        .join();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -24,7 +34,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
         children: [
           // Top branding layout panel container banner block
           Container(
-            color: companyThemeColor,
+            color: aluDeepGreen,
             width: double.infinity,
             padding: const EdgeInsets.only(top: 60.0, bottom: 24.0, left: 24.0, right: 24.0),
             child: Column(
@@ -58,7 +68,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    'ZH',
+                    initials.isEmpty ? '?' : initials,
                     style: GoogleFonts.inter(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -69,34 +79,33 @@ class StartupMyProfileScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Zuri Health',
+                      founderName,
                       style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(color: aluOrange, borderRadius: BorderRadius.circular(4)),
-                      child: Text('ALU VERIFIED', style: GoogleFonts.inter(color: Colors.black, fontSize: 8, fontWeight: FontWeight.w900)),
+                      decoration: BoxDecoration(
+                        color: isVerified ? aluOrange : Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isVerified ? 'ALU VERIFIED' : 'PENDING VERIFICATION',
+                        style: GoogleFonts.inter(color: isVerified ? Colors.black : Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-
-                // Subtitle Bio Text context string line
-                Text(
-                  'Democratizing healthcare access across Africa',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.9), fontSize: 14, fontWeight: FontWeight.w500),
-                ),
                 const SizedBox(height: 24),
 
-                // Horizontal Operational Matrix Performance Row Cells
+                // Zeroed out until opportunities/applications are backed by
+                // real Firestore collections scoped to this founder.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildHeaderMetricCell('2', 'Active Roles'),
-                    _buildHeaderMetricCell('4', 'Total Apps'),
-                    _buildHeaderMetricCell('1', 'Interviews'),
+                    _buildHeaderMetricCell('0', 'Active Roles'),
+                    _buildHeaderMetricCell('0', 'Total Apps'),
+                    _buildHeaderMetricCell('0', 'Interviews'),
                   ],
                 ),
               ],
@@ -112,30 +121,37 @@ class StartupMyProfileScreen extends ConsumerWidget {
                 children: [
                   Text('About', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
-                  Text(
-                    'Zuri Health is a digital health platform connecting patients across sub-Saharan Africa with certified doctors via telemedicine. We operate in Rwanda, Kenya, and Nigeria with over 40,000 monthly active users.',
-                    style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.5),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Industry details summary panel tags block array
-                  Text('Enterprise Specifications', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 12),
-                  _buildSpecificationRow('Sector', '🏥 HealthTech'),
-                  _buildSpecificationRow('Location', '📍 Kigali, Rwanda'),
-                  _buildSpecificationRow('Company Size', '👥 12 people'),
-                  const SizedBox(height: 24),
-
-                  Text('Domains We Work In', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 10.0,
-                    children: domains.map((d) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(color: const Color(0xFFE6F4EA), borderRadius: BorderRadius.circular(12)),
-                      child: Text(d, style: GoogleFonts.inter(color: const Color(0xFF137333), fontWeight: FontWeight.bold, fontSize: 13)),
-                    )).toList(),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200, width: 1),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(Icons.storefront_outlined, color: Colors.grey.shade400, size: 26),
+                        const SizedBox(height: 10),
+                        Text(
+                          "You haven't added a company bio or specifications yet.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const StartupProfileSetupScreen(isEditing: true)),
+                            );
+                          },
+                          child: Text(
+                            'Complete your profile',
+                            style: GoogleFonts.inter(color: aluDeepGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -154,18 +170,6 @@ class StartupMyProfileScreen extends ConsumerWidget {
         const SizedBox(height: 2),
         Text(label, style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w500)),
       ],
-    );
-  }
-
-  Widget _buildSpecificationRow(String category, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          Text('$category: ', style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.bold)),
-          Text(value, style: GoogleFonts.inter(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w600)),
-        ],
-      ),
     );
   }
 
@@ -201,10 +205,6 @@ class StartupMyProfileScreen extends ConsumerWidget {
                   title: Text('Sign Out Venture Session', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFFE53E3E))),
                   onTap: () {
                     Navigator.of(context).pop();
-                    // No manual navigation to OnboardingScreen needed here —
-                    // signOut() flips authStateProvider to null, and
-                    // AuthGate (main.dart) reacts by swapping the screen
-                    // for us automatically.
                     ref.read(authRepositoryProvider).signOut();
                   },
                 ),

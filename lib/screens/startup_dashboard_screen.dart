@@ -1,28 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/opportunity.dart';
+import '../providers/auth_providers.dart';
+import '../providers/opportunity_providers.dart';
 import 'opportunity_details_screen.dart';
 import 'post_opportunity_screen.dart';
 import 'startup_my_profile_screen.dart';
 
 /// Central analytical workspace for verified ALU ecosystem startups.
 /// Enables position lifecycle monitoring and inbound student application review.
-class StartupDashboardScreen extends StatefulWidget {
+class StartupDashboardScreen extends ConsumerStatefulWidget {
   const StartupDashboardScreen({super.key});
 
   @override
-  State<StartupDashboardScreen> createState() => _StartupDashboardScreenState();
+  ConsumerState<StartupDashboardScreen> createState() => _StartupDashboardScreenState();
 }
 
-class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
+class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen> {
   int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    // Brand palettes matching the dynamic Zuri Health presentation profile rules
-    const Color companyThemeColor = Color(0xFF0C4E33);
     const Color aluDeepGreen = Color(0xFF0C4E33);
 
-    // Context views array mapping out structural startup menu options
+    // Real signed-in founder's name from Firestore, not a hard-coded
+    // "Zuri Health" placeholder — every new startup account starts on
+    // this same dashboard with their own name and an empty pipeline.
+    final profile = ref.watch(currentUserProfileProvider).value;
+    final String founderDisplayName = profile?.fullName ?? 'Your venture';
+
+    final myOpportunities = ref.watch(myOpportunitiesProvider).value ?? const <Opportunity>[];
+
     final List<Widget> startupTabs = [
       const SizedBox.shrink(), // Rendered directly inside column below
       Center(child: Text('Create Listing Terminal', style: GoogleFonts.inter())),
@@ -38,13 +47,12 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
               children: [
                 // Top Section: Rich Brand Analytical Hub Banner
                 Container(
-                  color: companyThemeColor,
+                  color: aluDeepGreen,
                   width: double.infinity,
                   padding: const EdgeInsets.only(top: 60.0, left: 24.0, right: 24.0, bottom: 24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Subheading Dashboard Context Tag
                       Text(
                         'Startup Dashboard',
                         style: GoogleFonts.inter(
@@ -54,9 +62,8 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // Core Entity Label Typography
                       Text(
-                        'Zuri Health',
+                        founderDisplayName,
                         style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 28,
@@ -65,14 +72,16 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Horizontal Operations KPI Metrics Summary Matrix
+                      // Open Roles reflects real Firestore postings.
+                      // Applicants/Interviews stay at zero until an
+                      // applications collection exists to count from.
                       Row(
                         children: [
-                          _buildUpperSummaryMetricCard('2', 'Open Roles'),
+                          _buildUpperSummaryMetricCard('${myOpportunities.length}', 'Open Roles'),
                           const SizedBox(width: 10),
-                          _buildUpperSummaryMetricCard('4', 'Applicants'),
+                          _buildUpperSummaryMetricCard('0', 'Applicants'),
                           const SizedBox(width: 10),
-                          _buildUpperSummaryMetricCard('1', 'Interviews'),
+                          _buildUpperSummaryMetricCard('0', 'Interviews'),
                         ],
                       ),
                     ],
@@ -141,7 +150,6 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // Section Heading Block: Active Listings
                         Text(
                           'Active Listings',
                           style: GoogleFonts.inter(
@@ -151,30 +159,18 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                           ),
                         ),
                         const SizedBox(height: 14),
-
-                        // Position Slot Card 1
-                        _buildActiveListingTrackCard(
-                          context,
-                          id: 'opp_1',
-                          positionTitle: 'Frontend Engineer Intern',
-                          metaDetails: 'Internship · 2 spots',
-                          expiryDateString: 'Closes Jul 25',
-                          companyThemeColor: companyThemeColor,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Position Slot Card 2
-                        _buildActiveListingTrackCard(
-                          context,
-                          id: 'opp_2',
-                          positionTitle: 'Product Design Intern',
-                          metaDetails: 'Internship · 1 spot',
-                          expiryDateString: 'Closes Jul 28',
-                          companyThemeColor: companyThemeColor,
-                        ),
+                        if (myOpportunities.isEmpty)
+                          _buildEmptyState(
+                            icon: Icons.work_outline,
+                            message: "You haven't posted any opportunities yet.",
+                          )
+                        else
+                          ...myOpportunities.map((opportunity) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: _buildActiveListingTrackCard(context, opportunity),
+                              )),
                         const SizedBox(height: 28),
 
-                        // Section Heading Block: Recent Applicants
                         Text(
                           'Recent Applicants',
                           style: GoogleFonts.inter(
@@ -184,26 +180,10 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                           ),
                         ),
                         const SizedBox(height: 14),
-
-                        // Applicant Vector Profile 1
-                        _buildApplicantStatusRow(
-                          studentName: 'Amara Diallo',
-                          targetRole: 'Frontend Engineer Intern',
-                          profileInit: 'AD',
-                          statusBadgeLabel: 'Shortlisted',
-                          isShortlisted: true,
+                        _buildEmptyState(
+                          icon: Icons.people_outline,
+                          message: 'Applicants will show up here once students start applying.',
                         ),
-                        const SizedBox(height: 12),
-
-                        // Applicant Vector Profile 2
-                        _buildApplicantStatusRow(
-                          studentName: 'Kwame Asante',
-                          targetRole: 'Frontend Engineer Intern',
-                          profileInit: 'KA',
-                          statusBadgeLabel: 'Under Review',
-                          isShortlisted: false,
-                        ),
-                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
@@ -211,7 +191,6 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
               ],
             ),
 
-      // Local Startup Workspace Navigation Frame Base Shell
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -264,42 +243,16 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
     );
   }
 
-  /// Factory helper structuring active internship position cards cleanly.
-  /// Seamlessly redirects startup operators to view full opportunity specifications.
-  Widget _buildActiveListingTrackCard(
-    BuildContext context, {
-    required String id,
-    required String positionTitle,
-    required String metaDetails,
-    required String expiryDateString,
-    required Color companyThemeColor,
-  }) {
+  /// Renders one real, Firestore-backed listing on the founder's own
+  /// dashboard. Tapping it reuses OpportunityDetailsScreen — the same
+  /// view students land on — via Opportunity.toDisplayMap(), so founders
+  /// see exactly what applicants see.
+  Widget _buildActiveListingTrackCard(BuildContext context, Opportunity opportunity) {
     return InkWell(
       onTap: () {
-        // Explicitly reuse the same high-utility Opportunity Details view layer
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => OpportunityDetailsScreen(
-              opportunityData: {
-                'id': id,
-                'logoInit': 'ZH',
-                'logoColor': companyThemeColor,
-                'companyName': 'Zuri Health',
-                'roleTitle': positionTitle,
-                'workplaceSetting': 'On-site',
-                'duration': metaDetails.contains('3 months') ? '3 months' : '6 months',
-                'jobType': 'Internship',
-                'department': positionTitle.contains('Design') ? 'Design' : 'Engineering',
-                'stipend': positionTitle.contains('Design') ? 'RWF 70,000/mo' : 'RWF 80,000/mo',
-                'spotsLeft': metaDetails.contains('2 spots') ? '2 spots left' : '1 spot left',
-                'daysLeft': '14d left',
-                // Special flag telling the screen to hide student application sheets
-                'isApplied': true,
-                'aboutText': positionTitle.contains('Design')
-                    ? "Help shape the user experience of Africa's fastest-growing digital health platform. You'll own end-to-end design for two upcoming features and conduct user research with patients and doctors."
-                    : "Join Zuri Health's engineering squad to build and optimize responsive cross-platform layout components for patients inside our ecosystem.",
-              },
-            ),
+            builder: (context) => OpportunityDetailsScreen(opportunityData: opportunity.toDisplayMap()),
           ),
         );
       },
@@ -322,9 +275,12 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        positionTitle,
-                        style: GoogleFonts.inter(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w900),
+                      Flexible(
+                        child: Text(
+                          opportunity.roleTitle,
+                          style: GoogleFonts.inter(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w900),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Container(
@@ -339,12 +295,12 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    metaDetails,
+                    '${opportunity.jobType} · ${opportunity.spotsLeftLabel}',
                     style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    expiryDateString,
+                    opportunity.daysLeftLabel,
                     style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -360,55 +316,23 @@ class _StartupDashboardScreenState extends State<StartupDashboardScreen> {
     );
   }
 
-  /// Custom list component displaying student submission vectors and status badge labels
-  Widget _buildApplicantStatusRow({
-    required String studentName,
-    required String targetRole,
-    required String profileInit,
-    required String statusBadgeLabel,
-    required bool isShortlisted,
-  }) {
+  Widget _buildEmptyState({required IconData icon, required String message}) {
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(color: Color(0xFFE6F4EA), shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: Text(profileInit, style: GoogleFonts.inter(color: const Color(0xFF137333), fontWeight: FontWeight.bold, fontSize: 13)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(studentName, style: GoogleFonts.inter(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text(targetRole, style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isShortlisted ? const Color(0xFFE8F0FE) : const Color(0xFFF1F3F5),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              statusBadgeLabel,
-              style: GoogleFonts.inter(
-                color: isShortlisted ? const Color(0xFF1A73E8) : Colors.grey.shade700,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          Icon(icon, color: Colors.grey.shade400, size: 28),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ],
       ),
