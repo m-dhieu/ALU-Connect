@@ -1,32 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_providers.dart';
 import 'startup_dashboard_screen.dart';
 
 /// Form terminal used during startup creation or information adjustment.
-class StartupProfileSetupScreen extends StatefulWidget {
+class StartupProfileSetupScreen extends ConsumerStatefulWidget {
   final bool isEditing;
 
   const StartupProfileSetupScreen({super.key, this.isEditing = false});
 
   @override
-  State<StartupProfileSetupScreen> createState() => _StartupProfileSetupScreenState();
+  ConsumerState<StartupProfileSetupScreen> createState() => _StartupProfileSetupScreenState();
 }
 
-class _StartupProfileSetupScreenState extends State<StartupProfileSetupScreen> {
+class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
-  
-  // Form Text Entry Fields Listeners
-  final _bioController = TextEditingController(text: 'Democratizing healthcare access across Africa');
-  final _aboutController = TextEditingController(
-    text: 'Zuri Health is a digital health platform connecting patients across sub-Saharan Africa with certified doctors via telemedicine. We operate in Rwanda, Kenya, and Nigeria with over 40,000 monthly active users.'
-  );
-  final _sizeController = TextEditingController(text: '12 people');
-  
-  String _selectedIndustry = '🏥 HealthTech';
+
+  // Blank for a new registration so a founder fills in their own venture's
+  // details. In edit mode, _loadExistingProfile() below populates these
+  // from Firestore once, right after the screen mounts.
+  final _bioController = TextEditingController();
+  final _aboutController = TextEditingController();
+  final _sizeController = TextEditingController();
+
+  String? _selectedIndustry;
+  bool _isSubmitting = false;
 
   // Reactive tracks tag matrices selection map fields
   final List<String> _availableDomains = ['Engineering', 'Design', 'Marketing', 'Business', 'Research', 'Operations', 'Content', 'Community'];
-  final List<String> _selectedDomains = ['Engineering', 'Design', 'Marketing'];
+  final List<String> _selectedDomains = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isEditing) {
+      _loadExistingProfile();
+    }
+  }
+
+  Future<void> _loadExistingProfile() async {
+    // .future on a StreamProvider resolves with that stream's first value —
+    // exactly what's needed here, a one-time snapshot to seed the form
+    // rather than a live subscription (the form fields are locally owned
+    // from this point on, not bound to the stream).
+    final profile = await ref.read(currentUserProfileProvider.future);
+    if (!mounted || profile == null) return;
+    setState(() {
+      _bioController.text = profile.tagline;
+      _aboutController.text = profile.about;
+      _sizeController.text = profile.companySize;
+      _selectedIndustry = profile.industry.isEmpty ? null : profile.industry;
+      _selectedDomains
+        ..clear()
+        ..addAll(profile.domains);
+    });
+  }
 
   @override
   void dispose() {
@@ -37,9 +66,44 @@ class _StartupProfileSetupScreenState extends State<StartupProfileSetupScreen> {
   }
 
   bool _isFormValid() {
-    return _bioController.text.trim().isNotEmpty && 
-           _aboutController.text.trim().isNotEmpty && 
+    return _selectedIndustry != null &&
+           _bioController.text.trim().isNotEmpty &&
+           _aboutController.text.trim().isNotEmpty &&
            _selectedDomains.isNotEmpty;
+  }
+
+  Future<void> _handleSubmit() async {
+    setState(() => _isSubmitting = true);
+    try {
+      final uid = ref.read(authStateProvider).value?.uid;
+      if (uid == null) throw StateError('No signed-in user.');
+
+      await ref.read(authRepositoryProvider).updateStartupProfile(
+            uid: uid,
+            tagline: _bioController.text.trim(),
+            about: _aboutController.text.trim(),
+            companySize: _sizeController.text.trim(),
+            industry: _selectedIndustry!,
+            domains: _selectedDomains,
+          );
+
+      if (!mounted) return;
+      if (widget.isEditing) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const StartupDashboardScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save your profile: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -94,6 +158,7 @@ class _StartupProfileSetupScreenState extends State<StartupProfileSetupScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedIndustry,
+                      hint: Text('Select a sector', style: GoogleFonts.inter(fontSize: 15, color: Colors.grey.shade400)),
                       isExpanded: true,
                       items: <String>['🏥 HealthTech', '🚜 AgriTech', '📚 EdTech', '💳 FinTech', '🚚 Logistics'].map((String val) {
                         return DropdownMenuItem<String>(
@@ -173,28 +238,23 @@ class _StartupProfileSetupScreenState extends State<StartupProfileSetupScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isFormValid() 
-                        ? () {
-                            if (widget.isEditing) {
-                              Navigator.of(context).pop();
-                            } else {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(builder: (context) => const StartupDashboardScreen()),
-                                (route) => false,
-                              );
-                            }
-                          }
-                        : null,
+                    onPressed: (_isFormValid() && !_isSubmitting) ? _handleSubmit : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: aluDeepGreen,
                       disabledBackgroundColor: Colors.grey.shade300,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: Text(
-                      widget.isEditing ? 'Save Profile' : 'Complete Registration →',
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : Text(
+                            widget.isEditing ? 'Save Profile' : 'Complete Registration →',
+                            style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                   ),
                 ),
               ],

@@ -121,43 +121,90 @@ class StartupMyProfileScreen extends ConsumerWidget {
                 children: [
                   Text('About', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200, width: 1),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(Icons.storefront_outlined, color: Colors.grey.shade400, size: 26),
-                        const SizedBox(height: 10),
-                        Text(
-                          "You haven't added a company bio or specifications yet.",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const StartupProfileSetupScreen(isEditing: true)),
-                            );
-                          },
-                          child: Text(
-                            'Complete your profile',
-                            style: GoogleFonts.inter(color: aluDeepGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                  if (profile == null || profile.about.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FA),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.storefront_outlined, color: Colors.grey.shade400, size: 26),
+                          const SizedBox(height: 10),
+                          Text(
+                            "You haven't added a company bio or specifications yet.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context) => const StartupProfileSetupScreen(isEditing: true)),
+                              );
+                            },
+                            child: Text(
+                              'Complete your profile',
+                              style: GoogleFonts.inter(color: aluDeepGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    if (profile.tagline.isNotEmpty) ...[
+                      Text(
+                        profile.tagline,
+                        style: GoogleFonts.inter(color: Colors.grey.shade600, fontStyle: FontStyle.italic, fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    Text(
+                      profile.about,
+                      style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.5),
                     ),
-                  ),
+                    const SizedBox(height: 24),
+
+                    Text('Enterprise Specifications', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    if (profile.industry.isNotEmpty) _buildSpecificationRow('Sector', profile.industry),
+                    if (profile.companySize.isNotEmpty) _buildSpecificationRow('Company Size', '👥 ${profile.companySize}'),
+                    const SizedBox(height: 24),
+
+                    if (profile.domains.isNotEmpty) ...[
+                      Text('Domains We Work In', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 10.0,
+                        children: profile.domains.map((d) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(color: const Color(0xFFE6F4EA), borderRadius: BorderRadius.circular(12)),
+                          child: Text(d, style: GoogleFonts.inter(color: const Color(0xFF137333), fontWeight: FontWeight.bold, fontSize: 13)),
+                        )).toList(),
+                      ),
+                    ],
+                  ],
                   const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecificationRow(String category, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Text('$category: ', style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(value, style: GoogleFonts.inter(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w600)),
         ],
       ),
     );

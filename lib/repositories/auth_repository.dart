@@ -64,6 +64,28 @@ class AuthRepository {
     }
   }
 
+  /// Saves the venture details collected on StartupProfileSetupScreen.
+  /// A partial `.update()`, not `.set()` — this must only touch these five
+  /// fields and leave isVerifiedStartup (and everything else on the
+  /// document) exactly as it was, both for correctness and because
+  /// firestore.rules rejects any update that changes isVerifiedStartup.
+  Future<void> updateStartupProfile({
+    required String uid,
+    required String tagline,
+    required String about,
+    required String companySize,
+    required String industry,
+    required List<String> domains,
+  }) {
+    return _firestore.collection('users').doc(uid).update({
+      'tagline': tagline,
+      'about': about,
+      'companySize': companySize,
+      'industry': industry,
+      'domains': domains,
+    });
+  }
+
   Future<void> signInWithEmail({required String email, required String password}) {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
