@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
 
-/// Interactive configuration terminal used during both initial onboarding workflows
-/// and later profile modification settings.
+// configure user profile during onboarding & settings
 class ProfileSetupScreen extends StatefulWidget {
   final bool isEditing;
 
@@ -16,7 +15,7 @@ class ProfileSetupScreen extends StatefulWidget {
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String _selectedCampus = 'Kigali Campus';
   
-  // Track selected tags reactively matching the mock data references
+  // track selected tags
   final List<String> _availableSkills = ['React', 'Python', 'Flutter', 'Firebase', 'Figma', 'Node.js', 'Data Analysis', 'UX Research', 'Dart', 'UI Design'];
   final List<String> _selectedSkills = ['React', 'Python', 'Flutter', 'Firebase', 'Figma', 'Node.js', 'Data Analysis', 'UX Research'];
 
@@ -60,7 +59,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Parameter Section 1: Campus Selection Dropdown
+              // campus selection
               Text(
                 'ALU CAMPUS',
                 style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
@@ -92,7 +91,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Parameter Section 2: Technical Skills Matrix Selectors
+              // technical skills selection
               Text(
                 'SELECT YOUR SKILLS',
                 style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
@@ -129,7 +128,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Parameter Section 3: Industry Interests Domain Selectors
+              // industry interests selection
               Text(
                 'AREAS OF INTEREST',
                 style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
@@ -166,16 +165,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               const SizedBox(height: 40),
 
-              // Action Commit Submission Controller Button
+              // handle submission action
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
                     if (widget.isEditing) {
-                      Navigator.of(context).pop(); // Returns back to profile interface after updating variables
+                      Navigator.of(context).pop(); // return to profile interface after updates
                     } else {
-                      // Unwinds onboarding authorization sequences pushing live into dashboard
+                      // complete onboarding & open dashboard
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(builder: (context) => const HomeScreen()),
                         (route) => false,

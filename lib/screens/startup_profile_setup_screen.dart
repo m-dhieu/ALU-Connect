@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_providers.dart';
 import 'startup_dashboard_screen.dart';
 
-/// Form terminal used during startup creation or information adjustment.
+// create/update startup profile
 class StartupProfileSetupScreen extends ConsumerStatefulWidget {
   final bool isEditing;
 
@@ -17,9 +17,7 @@ class StartupProfileSetupScreen extends ConsumerStatefulWidget {
 class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Blank for a new registration so a founder fills in their own venture's
-  // details. In edit mode, _loadExistingProfile() below populates these
-  // from Firestore once, right after the screen mounts.
+  // initialize startup details for create/edit mode
   final _bioController = TextEditingController();
   final _aboutController = TextEditingController();
   final _sizeController = TextEditingController();
@@ -27,7 +25,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
   String? _selectedIndustry;
   bool _isSubmitting = false;
 
-  // Reactive tracks tag matrices selection map fields
+  // track selected startup tags
   final List<String> _availableDomains = ['Engineering', 'Design', 'Marketing', 'Business', 'Research', 'Operations', 'Content', 'Community'];
   final List<String> _selectedDomains = [];
 
@@ -40,10 +38,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
   }
 
   Future<void> _loadExistingProfile() async {
-    // .future on a StreamProvider resolves with that stream's first value —
-    // exactly what's needed here, a one-time snapshot to seed the form
-    // rather than a live subscription (the form fields are locally owned
-    // from this point on, not bound to the stream).
+    // load initial profile data into form fields
     final profile = await ref.read(currentUserProfileProvider.future);
     if (!mounted || profile == null) return;
     setState(() {
@@ -146,7 +141,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 28),
 
-                // Industry Sector Selection Card Form Field
+                // industry sector selection card form field
                 _buildFormSectionLabel('INDUSTRY SECTOR'),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -172,7 +167,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 24),
 
-                // Short Tagline/Bio Input Form Field
+                // bio input form field
                 _buildFormSectionLabel('STARTUP TAGLINE / ONE-LINER'),
                 TextFormField(
                   controller: _bioController,
@@ -180,7 +175,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 24),
 
-                // Company Size Input Form Field
+                // company size input form field
                 _buildFormSectionLabel('COMPANY SIZE'),
                 TextFormField(
                   controller: _sizeController,
@@ -188,7 +183,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 24),
 
-                // Comprehensive Long Description Text Form Field
+                // comprehensive long description text form field
                 _buildFormSectionLabel('ABOUT THE STARTUP'),
                 TextFormField(
                   controller: _aboutController,
@@ -197,7 +192,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 24),
 
-                // Target Fields Tracks Selection Tag Matrix Cloud
+                // operational domains selection tag matrix cloud
                 _buildFormSectionLabel('OPERATIONAL DOMAINS'),
                 Wrap(
                   spacing: 8.0,
@@ -233,7 +228,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
                 ),
                 const SizedBox(height: 40),
 
-                // Form Trigger Commit Execution Control Button
+                // execute form submission action
                 SizedBox(
                   width: double.infinity,
                   height: 56,

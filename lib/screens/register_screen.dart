@@ -7,8 +7,7 @@ import '../providers/auth_providers.dart';
 import 'profile_setup_screen.dart';
 import 'startup_profile_setup_screen.dart';
 
-/// Account registration screen
-/// institutional email validation for the ALU
+// account registration screen
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -37,13 +36,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
-  /// Students must register with a real @alueducation.com or
-  /// @alustudent.com address — that's the whole mechanism by which "only
-  /// ALU students" access the platform, since we have no other way to
-  /// check institutional membership. Founders aren't ALU students, so
-  /// they're only held to looking like a real email; their legitimacy is
-  /// instead gated by the isVerifiedStartup flag (an admin manually
-  /// verifies each startup — see AppUser's doc comment).
+  // validate student email addresses during registration
+  // verify startups separately through admin approval
   static const List<String> _aluStudentDomains = ['@alueducation.com', '@alustudent.com'];
 
   String? _validateEmail(String? value) {
@@ -85,12 +79,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (!mounted) return;
 
-      // Registration succeeds -> creates the Auth account AND the Firestore
-      // profile doc in one call (see AuthRepository.registerWithEmail).
-      // From here we still push straight to profile setup ourselves, rather
-      // than waiting on AuthGate, because a brand-new account should always
-      // land on "finish your profile" once, regardless of what AuthGate
-      // would otherwise route to.
+      // open profile setup for new users
       if (_selectedRole == UserRole.startup) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -112,11 +101,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         SnackBar(content: Text(_authErrorMessage(e))),
       );
     } on FirebaseException catch (e) {
-      // Covers Firestore errors from the profile-doc write (e.g. rejected
-      // by firestore.rules) — a different exception type than
-      // FirebaseAuthException, so it needs its own catch clause or it
-      // would previously slip through uncaught, leaving the button stuck
-      // on its loading spinner with no feedback at all.
+      // handle profile creation errors & show feedback when setup fails
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Could not create your profile: ${e.message ?? e.code}')),
@@ -213,7 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Typography Layout Elements
+                // header text elements
                 Text(
                   'Join ALU Connect',
                   style: GoogleFonts.inter(
@@ -233,7 +218,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Field Section Label: Role Selection
                 Text(
                   'I AM A',
                   style: GoogleFonts.inter(
@@ -245,7 +229,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Horizontal Custom Role Selector Widget Grid Matrix
+                // role selector grid
                 Row(
                   children: [
                     Expanded(
@@ -327,7 +311,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Field Section Label: Name Form Input Layout Block
+                // name form input block
                 Text(
                   'FULL NAME',
                   style: GoogleFonts.inter(
@@ -350,7 +334,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Field Section Label: Email Entry Form Input Layout Block
+                // email entry form input block
                 Text(
                   'EMAIL',
                   style: GoogleFonts.inter(
@@ -374,7 +358,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Field Section Label: Password Form Entry Input Layout Block
+                // password form entry input block
                 Text(
                   'PASSWORD',
                   style: GoogleFonts.inter(
@@ -410,7 +394,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 36),
 
-                // Form Registration Action Commit Control Layout Button
+                // handle registration form submission
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -442,7 +426,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Navigation Alternate Option Switch Context Flow Subtext Anchor
+                // show alternate nav option
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

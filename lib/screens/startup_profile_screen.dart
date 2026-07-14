@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'opportunity_details_screen.dart';
 
-/// Public read-only profile view of an ALU-recognized startup, reached by
-/// tapping a startup avatar on the student discovery feed.
+// public startup profile view
 class StartupProfileScreen extends StatelessWidget {
   final Map<String, dynamic> startupData;
 

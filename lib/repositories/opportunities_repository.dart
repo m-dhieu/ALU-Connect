@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/opportunity.dart';
 
-/// Firestore access for the `opportunities` collection. Named plural
-/// (OpportunitiesRepository) to avoid colliding with the existing static
-/// OpportunityRepository in models/opportunity_data.dart, which still
-/// serves the hard-coded demo startups shown on the explore feed.
+// handle Firestore access for opportunities
+// keep separate from static demo opportunity data
 class OpportunitiesRepository {
   final FirebaseFirestore _firestore;
 
@@ -16,16 +14,11 @@ class OpportunitiesRepository {
     return _collection.add(opportunity.toMap());
   }
 
-  /// Updates an already-posted opportunity in place. Uses
-  /// [Opportunity.toUpdateMap], not [Opportunity.toMap], so the original
-  /// `createdAt` is preserved instead of being stamped over with the edit
-  /// time (see that method's doc comment).
+  // update opportunity without changing original posting date
   Future<void> updateOpportunity(Opportunity opportunity) {
     return _collection.doc(opportunity.id).update(opportunity.toUpdateMap());
   }
 
-  /// All opportunities posted by one founder, newest first — this is what
-  /// the startup dashboard's "Active Listings" section watches.
   Stream<List<Opportunity>> watchMyOpportunities(String uid) {
     return _collection
         .where('postedByUid', isEqualTo: uid)
@@ -34,8 +27,6 @@ class OpportunitiesRepository {
         .map((snapshot) => snapshot.docs.map(Opportunity.fromDoc).toList());
   }
 
-  /// Every founder-posted opportunity, newest first — feeds the student
-  /// explore screen alongside the static demo listings.
   Stream<List<Opportunity>> watchAllOpportunities() {
     return _collection
         .orderBy('createdAt', descending: true)

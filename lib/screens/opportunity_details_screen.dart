@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_providers.dart';
 import 'success_screen.dart';
 
-/// Comprehensive specification viewer layout for individual marketplace listings.
-/// Dynamically tracks user submission states, modifies text boundaries, and adapts brand theme colors.
+// show marketplace listing details & track submission status
 class OpportunityDetailsScreen extends ConsumerWidget {
   final Map<String, dynamic> opportunityData;
 
@@ -16,21 +15,17 @@ class OpportunityDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Dynamic brand color palette selection matching the parent card configurations
     final Color startupThemeColor = opportunityData['logoColor'] ?? const Color(0xFF0C4E33);
     const Color aluDeepGreen = Color(0xFF0C4E33);
 
-    // Conditional evaluation checking if this position has an existing submission entry
+    // check if position has an existing submission entry
     final bool isAlreadyApplied = opportunityData['isApplied'] ?? false;
 
-    // Explicit tag collections parsed out dynamically from data maps — no
-    // fallback list here since the posting form doesn't collect skill tags;
-    // showing invented ones would misrepresent a real founder's listing.
+    // extract opportunity tags from data maps
     final List<String> skillsTags = List<String>.from(opportunityData['skillsTags'] ?? const <String>[]);
     final List<String> responsibilities = List<String>.from(opportunityData['responsibilities'] ?? const <String>[]);
 
-    // The founder's real profile, looked up by the uid actually attached to
-    // this posting — replaces the previous hardcoded "Zuri Health" bio/badge.
+    // get founder profile linked to opportunity
     final String? postedByUid = opportunityData['postedByUid'] as String?;
     final startupProfile = postedByUid == null ? null : ref.watch(startupProfileProvider(postedByUid)).value;
 
@@ -38,7 +33,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Top Fluid Section: Dynamic startup branding background header panel
+          // show dynamic startup branding header
           Container(
             color: startupThemeColor,
             width: double.infinity,
@@ -46,7 +41,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Custom Rounded Action back navigation button
+                // back nav button
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
@@ -65,7 +60,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Company Avatar Emblem container frame
+                // company Avatar container
                 Container(
                   width: 64,
                   height: 64,
@@ -85,7 +80,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Company Label text context line
+                // company label text
                 Text(
                   opportunityData['companyName'] ?? 'Zuri Health',
                   style: GoogleFonts.inter(
@@ -96,7 +91,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
 
-                // Specific Role Title typography block
+                // role block
                 Text(
                   opportunityData['roleTitle'] ?? 'Product Design Intern',
                   style: GoogleFonts.inter(
@@ -110,7 +105,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
             ),
           ),
 
-          // Core Meta Data Grid Matrix Row blocks separated by elegant border structures
+          // show opportunity metadata grid
           Container(
             decoration: BoxDecoration(
               border: Border(
@@ -127,14 +122,13 @@ class OpportunityDetailsScreen extends ConsumerWidget {
             ),
           ),
 
-          // Scrollable Primary Descriptive Body Blocks (Encompassing full down-scroll targets)
+          // show scrollable opportunity description sections
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Heading Block: Section title details
                   Text(
                     'About the role',
                     style: GoogleFonts.inter(
@@ -145,7 +139,6 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Paragraph paragraph narrative detail mapping dynamically to company profiles
                   Text(
                     opportunityData['aboutText'] as String? ?? '',
                     style: GoogleFonts.inter(
@@ -157,8 +150,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 28),
 
-                  // "What you'll do" only renders when the founder actually
-                  // supplied responsibilities — no invented placeholder list.
+                  // show responsibilities when provided by founder
                   if (responsibilities.isNotEmpty) ...[
                     Text(
                       "What you'll do",
@@ -176,8 +168,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                     const SizedBox(height: 28),
                   ],
 
-                  // Skills & tags only render when the founder actually
-                  // supplied some — no invented placeholder tags.
+                  // show skills & tags when provided by founder
                   if (skillsTags.isNotEmpty) ...[
                     Text(
                       "Skills & tags",
@@ -197,14 +188,12 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                   ],
                   const SizedBox(height: 32),
 
-                  // Heading Block: Institutional entity insight context section
                   Text(
                     "About the startup",
                     style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 14),
 
-                  // Styled Profile card module with active ALU verification layer layout
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16.0),
@@ -281,7 +270,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
             ),
           ),
 
-          // Persistent Static Footer Framework Action Panel (Handles Submitted vs. Apply Now)
+          // show footer action panel based on application status
           SafeArea(
             top: false,
             child: Padding(
@@ -292,7 +281,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                 child: isAlreadyApplied
                     ? Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE6F4EA), // Soft pastel green background matching your screenshot
+                          color: const Color(0xFFE6F4EA), 
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: const Color(0xFFA1E3B5).withValues(alpha: 0.5), width: 1),
                         ),
@@ -324,7 +313,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
     );
   }
 
-  /// Factored block row processing custom bullet arrow vectors elegantly
+  // create custom bullet arrow rows
   Widget _buildBulletPointItem(String bulletText) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,7 +324,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
     );
   }
 
-  /// Factory helper structuring isolated columns within the dynamic meta grid block
+  // metadata grid columns
   Widget _buildGridMetadataCell(String label, String value, {bool isLast = false}) {
     return Expanded(
       child: Container(
@@ -353,7 +342,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
     );
   }
 
-  /// Inline pill/chip tag layout module factory
+  // tag chips layout
   Widget _buildCapabilityTag(String skillLabel) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -362,7 +351,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
     );
   }
 
-  /// Form modal bottom sheet capturing student reasons reactively with character limitations
+  // application reason form with character limit
   void _showApplicationBottomSheet(BuildContext context) {
     final TextEditingController justificationController = TextEditingController();
     int currentCharacterCount = 0;
@@ -427,7 +416,7 @@ class OpportunityDetailsScreen extends ConsumerWidget {
                       onPressed: currentCharacterCount == 0
                           ? null
                           : () {
-                              Navigator.of(context).pop(); // Closes sheet module overlay layers
+                              Navigator.of(context).pop(); // close sheet module overlay layers
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => SuccessScreen(companyName: opportunityData['companyName'] ?? 'Zuri Health'),

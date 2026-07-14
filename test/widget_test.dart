@@ -1,4 +1,4 @@
-// Basic Flutter smoke test for the ALU Connect app.
+// basic smoke test
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

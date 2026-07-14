@@ -8,7 +8,7 @@ import 'post_opportunity_screen.dart';
 import 'startup_profile_setup_screen.dart';
 import 'notification_screen.dart';
 
-/// Presentation profile tab showing corporate venture stats, operational metadata fields, and actions.
+// show startup stats & profile actions
 class StartupMyProfileScreen extends ConsumerWidget {
   const StartupMyProfileScreen({super.key});
 
@@ -21,8 +21,6 @@ class StartupMyProfileScreen extends ConsumerWidget {
     final String founderName = profile?.fullName ?? 'Your venture';
     final bool isVerified = profile?.isVerifiedStartup ?? false;
     final List<Opportunity> myOpportunities = ref.watch(myOpportunitiesProvider).value ?? const [];
-    // Avatar initials from the founder's name (e.g. "Amara Diallo" -> "AD"),
-    // rather than a fixed "ZH" placeholder.
     final String initials = founderName
         .trim()
         .split(RegExp(r'\s+'))
@@ -36,14 +34,12 @@ class StartupMyProfileScreen extends ConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top branding layout panel container banner block
           Container(
             color: aluDeepGreen,
             width: double.infinity,
             padding: const EdgeInsets.only(top: 60.0, bottom: 24.0, left: 24.0, right: 24.0),
             child: Column(
               children: [
-                // Top Utilities Header Icon Controls Row Block
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -62,7 +58,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
                   ],
                 ),
 
-                // Venture Initial Emblem Badge Container Frame
+                // show startup emblem badge
                 Container(
                   width: 76,
                   height: 76,
@@ -78,7 +74,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
 
-                // Corporate Identity Typography Block with Verification Seal Inline
+                // show startup name & verification badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -102,10 +98,8 @@ class StartupMyProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // "Active Roles" reflects this founder's real posted
-                // listings. "Total Apps"/"Interviews" stay zeroed out since
-                // there's no applications-tracking collection in Firestore
-                // yet — showing a count here would be fabricated data.
+                // show founder posting metrics from Firestore
+                // keep application metrics empty until data exists
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -118,7 +112,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
             ),
           ),
 
-          // Scrollable core descriptive body content maps
+          // scrollable description content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -216,9 +210,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
     );
   }
 
-  /// One row per real posted opportunity, tappable straight into its edit
-  /// form — mirrors the dashboard's "Active Listings" cards but condensed
-  /// for this profile summary view.
+  // show editable founder opportunity list
   Widget _buildActiveRoleRow(BuildContext context, Opportunity opportunity) {
     return InkWell(
       onTap: () {
@@ -259,10 +251,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
     );
   }
 
-  /// A lightweight "what's changed" feed derived from real posting dates —
-  /// there's no applications/notifications collection yet, so this only
-  /// surfaces the founder's own posting activity rather than inventing
-  /// application/interview events.
+  // show recent posting activity updates
   Widget _buildRecentUpdateRow(Opportunity opportunity) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
@@ -304,7 +293,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
     );
   }
 
-  /// Displays the interactive contextual choices menu bottom drawer overlay sheet
+  // show profile options bottom sheet
   void _showStartupSettingsBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,

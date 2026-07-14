@@ -11,8 +11,7 @@ import 'screens/startup_dashboard_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase must finish connecting before the app renders anything that
-  // might touch Auth or Firestore, so this is awaited ahead of runApp.
+  // initialize Firebase before running app
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
@@ -40,12 +39,8 @@ class ALUConnectApp extends StatelessWidget {
   }
 }
 
-/// Decides which screen the app opens on, based on live Firebase Auth state.
-///
-/// This is a ConsumerWidget (not StatelessWidget) so it can `watch` the auth
-/// providers — Riverpod rebuilds it automatically the instant someone signs
-/// in or out anywhere in the app, with no manual navigation calls needed at
-/// the sign-in/sign-out call sites themselves.
+// open correct screen depending on user sign in state
+// update screen automatically when user signs in/out
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 
@@ -59,13 +54,12 @@ class AuthGate extends ConsumerWidget {
         body: Center(child: Text('Something went wrong: $error')),
       ),
       data: (user) {
-        // Nobody signed in yet — show the marketing/login entry point.
+        // onboard user if not signed in yet
         if (user == null) {
           return const OnboardingScreen();
         }
 
-        // Signed in: now wait on their profile document to learn whether
-        // they're a student or a startup, and route accordingly.
+        // open dashboard based on user's profile 
         final profileState = ref.watch(currentUserProfileProvider);
         return profileState.when(
           loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -74,9 +68,7 @@ class AuthGate extends ConsumerWidget {
           ),
           data: (profile) {
             if (profile == null) {
-              // Auth account exists but the Firestore profile write hasn't
-              // landed yet (or failed) — safest fallback is the onboarding
-              // flow rather than crashing on a null role.
+              // if profile is missing, send user to onboarding
               return const OnboardingScreen();
             }
             return profile.role == UserRole.startup

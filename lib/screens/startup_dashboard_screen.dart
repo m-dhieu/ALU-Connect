@@ -8,8 +8,7 @@ import 'opportunity_details_screen.dart';
 import 'post_opportunity_screen.dart';
 import 'startup_my_profile_screen.dart';
 
-/// Central analytical workspace for verified ALU ecosystem startups.
-/// Enables position lifecycle monitoring and inbound student application review.
+// show startup dashboard & application reviews
 class StartupDashboardScreen extends ConsumerStatefulWidget {
   const StartupDashboardScreen({super.key});
 
@@ -24,16 +23,14 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
   Widget build(BuildContext context) {
     const Color aluDeepGreen = Color(0xFF0C4E33);
 
-    // Real signed-in founder's name from Firestore, not a hard-coded
-    // "Zuri Health" placeholder — every new startup account starts on
-    // this same dashboard with their own name and an empty pipeline.
+    // show signed-in founder name from Firestore
     final profile = ref.watch(currentUserProfileProvider).value;
     final String founderDisplayName = profile?.fullName ?? 'Your venture';
 
     final myOpportunities = ref.watch(myOpportunitiesProvider).value ?? const <Opportunity>[];
 
     final List<Widget> startupTabs = [
-      const SizedBox.shrink(), // Rendered directly inside column below
+      const SizedBox.shrink(), 
       Center(child: Text('Create Listing Terminal', style: GoogleFonts.inter())),
       const StartupMyProfileScreen(),
     ];
@@ -45,7 +42,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Section: Rich Brand Analytical Hub Banner
+                // analytical hub banner
                 Container(
                   color: aluDeepGreen,
                   width: double.infinity,
@@ -72,9 +69,8 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                       ),
                       const SizedBox(height: 24),
 
-                      // Open Roles reflects real Firestore postings.
-                      // Applicants/Interviews stay at zero until an
-                      // applications collection exists to count from.
+                      // show Firestore job postings
+                      // keep application counts empty until data exists
                       Row(
                         children: [
                           _buildUpperSummaryMetricCard('${myOpportunities.length}', 'Open Roles'),
@@ -88,14 +84,14 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
                   ),
                 ),
 
-                // Main Dashboard Body Context Viewport
+                // main dashboard body
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Primary Workflow Call-To-Action Element: Post an Opportunity
+                        // post an opportunity
                         InkWell(
                           onTap: () {
                             Navigator.of(context).push(
@@ -217,7 +213,7 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
     );
   }
 
-  /// Upper header panel operational micro tile matrix builder
+  // create header micro metric tiles
   Widget _buildUpperSummaryMetricCard(String numericalValue, String informationalLabel) {
     return Expanded(
       child: Container(
@@ -243,10 +239,8 @@ class _StartupDashboardScreenState extends ConsumerState<StartupDashboardScreen>
     );
   }
 
-  /// Renders one real, Firestore-backed listing on the founder's own
-  /// dashboard. Tapping it reuses OpportunityDetailsScreen — the same
-  /// view students land on — via Opportunity.toDisplayMap(), so founders
-  /// see exactly what applicants see.
+  // show founder opportunity card using Firestore data
+  // reuse student opportunity view for consistency
   Widget _buildActiveListingTrackCard(BuildContext context, Opportunity opportunity) {
     return InkWell(
       onTap: () {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Central data repository isolating ecosystem listings from UI render trees.
+// keep ecosystem data separate from UI
 class OpportunityRepository {
-  // Static list tracking active ALU recognized startup entries
+  // store recognized startup entries
   static final List<Map<String, dynamic>> aluStartups = [
     {'name': 'Zuri', 'init': 'ZH', 'color': const Color(0xFF0C4E33), 'verified': true},
     {'name': 'GreenRoute', 'init': 'GR', 'color': const Color(0xFF1F8A5F), 'verified': true},
@@ -12,7 +12,7 @@ class OpportunityRepository {
     {'name': 'Kuja', 'init': 'KC', 'color': const Color(0xFF9CA3AF), 'verified': false},
   ];
 
-  // Static list compiling complete multidimensional marketplace metrics
+  // store marketplace metrics data
   static final List<Map<String, dynamic>> allOpportunities = [
     {
       'id': 'opp_1',
@@ -136,7 +136,7 @@ class OpportunityRepository {
     },
   ];
 
-  // Static list tracking active applications submitted by the logged-in student
+  // store applications submitted
   static final List<Map<String, dynamic>> myApplications = <Map<String, dynamic>>[
     {
       'id': 'opp_x1',
@@ -153,12 +153,12 @@ class OpportunityRepository {
       'daysLeft': '20d left',
       'isApplied': true,
       'statusLabel': 'Shortlisted',
-      'statusStep': 1, // Represents 'Shortlisted' step on timeline
+      'statusStep': 1, // shortlisted
       'appliedDate': 'Applied Jul 8',
       'justificationText': '"I am passionate about EdTech and have built three Flutter apps with Firebase integration. I would love to contribute to..."',
     },
     {
-      'id': 'opp_4', // Matches the exact FarmWave ID from explore screen mapping rules
+      'id': 'opp_4', 
       'logoInit': 'FW',
       'logoColor': const Color(0xFFB7791F),
       'companyName': 'FarmWave',
@@ -172,7 +172,7 @@ class OpportunityRepository {
       'daysLeft': '15d left',
       'isApplied': true,
       'statusLabel': 'Under Review',
-      'statusStep': 0, // Represents 'Under' step on timeline
+      'statusStep': 0, // under review
       'appliedDate': 'Applied Jul 9',
       'justificationText': '"My ML coursework and crop disease detection project make me a strong candidate for this role at FarmWave."',
     }

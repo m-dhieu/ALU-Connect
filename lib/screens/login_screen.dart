@@ -5,13 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_providers.dart';
 import 'register_screen.dart';
 
-/// Sign In screen for ALU Connect.
-/// Restores active sessions for authenticated students or ecosystem startups.
-///
-/// Note there's no role selector here anymore that navigates anywhere —
-/// AuthGate in main.dart is what decides where a signed-in user lands
-/// (HomeScreen vs StartupDashboardScreen), by reading their stored role
-/// from Firestore. This screen's only job is to authenticate the account.
+// authenticate user accounts & restore active sessions
+// let AuthGate decide correct screen after sign in
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -35,11 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  // Login doesn't know the account's role until *after* authenticating
-  // (AuthGate reads it from Firestore), so it can't enforce the
-  // @alueducation.com restriction the way registration does — a startup
-  // founder could have signed up with any email address. This just checks
-  // the field looks like a real email at all.
+  // validate email before login
   static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   String? _validateEmail(String? value) {
@@ -64,10 +55,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
-      // No manual navigation here on purpose: signing in flips
-      // authStateProvider, and AuthGate (in main.dart) is watching that —
-      // it swaps to HomeScreen or StartupDashboardScreen on its own once
-      // the matching Firestore profile loads.
+      // let AuthGate handle nav after sign in
+      // update screen automatically when auth state changes
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,9 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  /// FirebaseAuthException.message is written for developers, not users
-  /// ("The password is invalid or the user does not have a password.") —
-  /// this maps the handful of codes we actually expect to friendlier text.
+  // convert Firebase errors into user friendly messages
   String _authErrorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
@@ -155,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Typography Elements
+                // header elements
                 Text(
                   'Welcome back',
                   style: GoogleFonts.inter(
@@ -175,7 +162,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Email Form Entry Module
+                // email form entry module
                 Text(
                   'EMAIL',
                   style: GoogleFonts.inter(
@@ -195,7 +182,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Password Form Entry Module
+                // password form entry module
                 Text(
                   'PASSWORD',
                   style: GoogleFonts.inter(
@@ -232,7 +219,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 36),
 
-                // Core Submit Control
+                // core submit control
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -264,7 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Alt Workspace Jump Hyperlink Text
+                // show workspace nav link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -8,8 +8,7 @@ import 'opportunity_details_screen.dart';
 import 'applied_screen.dart';
 import 'profile_screen.dart';
 
-/// Main Dashboard container screen for ALU students.
-/// Shows real Firestore-backed opportunity postings.
+// show student dashboard with Firestore opportunities
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -20,7 +19,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
   String _selectedJobType = 'All';
-  String _selectedCategory = 'Engineering'; // Set default highlights matching your exact screenshot view
+  String _selectedCategory = 'Engineering'; 
   bool _isRemoteSelected = false;
   String _highlightedOpportunityId = '';
 
@@ -29,15 +28,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     const Color aluDeepGreen = Color(0xFF0C4E33);
     const Color aluOrange = Color(0xFFF19E18);
 
-    // Array mapping targeted workspace tabs cleanly
+    // map workspace tabs to their screens
     final List<Widget> bottomNavigationScreens = [
-      const SizedBox.shrink(), // Index 0 rendered directly inside column below
+      const SizedBox.shrink(), 
       const AppliedScreen(),
       const ProfileScreen(),
     ];
 
-    // Real founder-posted opportunities from Firestore, converted into the
-    // Map shape the card widgets below expect (see Opportunity.toDisplayMap()).
+    // convert opportunities into card display
     final postedOpportunities = ref.watch(allPostedOpportunitiesProvider).value ?? const [];
     final List<Map<String, dynamic>> liveOpportunities = postedOpportunities.map((o) => o.toDisplayMap()).toList();
     final verifiedStartups = ref.watch(verifiedStartupsProvider).value ?? const [];
@@ -55,14 +53,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ? bottomNavigationScreens[_currentIndex]
           : Column(
               children: [
-                // Top Header Segment Background
                 Container(
                   color: aluDeepGreen,
                   padding: const EdgeInsets.only(top: 60.0, left: 24.0, right: 24.0, bottom: 24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Greeting Row Layout
+                      // greeting row layout
                       Row(
                         children: [
                           Column(
@@ -89,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Custom Search Box Widget
+                      // search box
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.12),
@@ -108,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Horizontal Job Type Filtering Chips
+                      // horizontal job type filtering chips
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -130,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Work Setting Filter Row
+                      // work setting filter row
                       GestureDetector(
                         onTap: () => setState(() => _isRemoteSelected = !_isRemoteSelected),
                         child: Container(
@@ -160,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
 
-                // Main Scrollable Dashboard Content
+                // scrollable dashboard content
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -168,7 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         const SizedBox(height: 16),
 
-                        // Categories List Bar Slider Frame
+                        // categories bar slider
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -203,9 +200,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // "ALU Startups" directory — only rendered once at
-                        // least one startup account has been ALU-verified,
-                        // rather than showing an empty carousel.
+                        // show startups directory when verified startups exist
                         if (verifiedStartups.isNotEmpty) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -302,7 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           const SizedBox(height: 12),
                         ],
 
-                        // Section Title: Dynamic Categorized Header Count (Matches Screenshot)
+                        // section title
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24.0),
                           child: Text(
@@ -312,7 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Render out the dynamic filtered items map loop
+                        // render filtered items list
                         if (filteredOpportunities.isEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
@@ -350,7 +345,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
 
-      // Bottom Global Navigation bar
+      // bottom global nav bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -369,7 +364,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Top header level job type filter chip helper
+  // job type filter chips
   Widget _buildTopFilterChip(String label, bool isSelected, Color activeColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -392,7 +387,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Inner body level category chip selection item helper
+  // category selection chips
   Widget _buildCategoryChip(String label, bool isSelected, Color activeColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -416,7 +411,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Componentized opportunity card handler implementing dynamic navigation routes
+  // handle opportunity card navigation
   Widget _buildOpportunityCard({
     required String id,
     required String logoInit,
@@ -454,7 +449,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'stipend': stipend,
                 'spotsLeft': spotsLeft,
                 'daysLeft': daysLeft,
-                'isApplied': id == 'opp_4', // Evaluates if card belongs to applied positions
+                'isApplied': id == 'opp_4', 
                 'aboutText': id == 'opp_1'
                     ? "Join Zuri Health's engineering squad to build and optimize responsive cross-platform layout components for patients inside our ecosystem."
                     : "Help build and scale impactful digital operations within the marketplace.",

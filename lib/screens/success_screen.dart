@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// A professional confirmation screen displayed upon successful application submission.
-/// Resets the navigation context stack to safely guide students back to exploration hubs.
+// show application success confirmation & reset nav to explore screen
 class SuccessScreen extends StatelessWidget {
   final String companyName;
 
@@ -13,7 +12,6 @@ class SuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Brand forest green color matching the ALU layout rules
     const Color aluDeepGreen = Color(0xFF0C4E33);
 
     return Scaffold(
@@ -27,7 +25,7 @@ class SuccessScreen extends StatelessWidget {
             children: [
               const Spacer(),
 
-              // Celebratory graphic layout module matching your screenshot reference
+              // show success celebration graphic
               const Center(
                 child: Text(
                   '🎉',
@@ -38,20 +36,19 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // Primary status title confirmation block
+              // show application status confirmation
               Text(
                 'Application sent!',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   color: Colors.black,
                   fontSize: 28,
-                  // FIXED: Changed from FontWeight.w900 to FontWeight.w900
                   fontWeight: FontWeight.w900, 
                 ),
               ),
               const SizedBox(height: 12),
 
-              // Dynamic institutional description tracking company feedback pipelines
+              // show company feedback information
               Text(
                 '$companyName will review your application and get back to you.',
                 textAlign: TextAlign.center,
@@ -64,12 +61,11 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // Core action redirect button returning explicitly to dashboard roots
+              // navigate back to dashboard
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Pops back recursively until hitting the root dashboard layout shell
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                   style: ElevatedButton.styleFrom(

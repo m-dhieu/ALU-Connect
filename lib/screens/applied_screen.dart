@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/opportunity_data.dart';
 import 'opportunity_details_screen.dart';
 
-/// Comprehensive dashboard rendering user application metrics and timelines.
+// show user application metrics and timelines
 class AppliedScreen extends StatelessWidget {
   const AppliedScreen({super.key});
 
@@ -18,11 +18,6 @@ class AppliedScreen extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
-        // AppBar's default toolbarHeight (56) is only tall enough for a
-        // single line of title text. Our two-line title (28px heading +
-        // subtitle) was overflowing that box, which is why the subtitle
-        // was getting clipped off — not actually invisible, just rendered
-        // outside the AppBar's bounds. Giving it explicit height fixes that.
         toolbarHeight: 96,
         title: Padding(
           padding: const EdgeInsets.only(left: 8.0, top: 12.0),
@@ -53,7 +48,7 @@ class AppliedScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Top Summary KPI Metrics Block Matrix Row
+          // display key metrics summary block
           Padding(
             padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
             child: Row(
@@ -77,7 +72,7 @@ class AppliedScreen extends StatelessWidget {
             ),
           ),
 
-          // Scrollable Application Cards Feed List
+          // show scrollable application cards list
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
@@ -96,7 +91,7 @@ class AppliedScreen extends StatelessWidget {
     );
   }
 
-  /// Component factory constructing structured metric panels
+  // create structured metric panels
   Widget _buildSummaryKpiCard(
     String metricValue,
     String metricLabel,
@@ -135,7 +130,7 @@ class AppliedScreen extends StatelessWidget {
     );
   }
 
-  /// Detailed application element capturing real-time pipelines and validation tracking
+  // track application details & validation status
   Widget _buildApplicationProgressCard(
     BuildContext context,
     Map<String, dynamic> app,
@@ -165,7 +160,7 @@ class AppliedScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status Badge Overlay Line Block
+            // status badge overlay line block
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -200,7 +195,7 @@ class AppliedScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
 
-            // Company Avatar Emblem & Identity Description Module
+            // company avatar & description module
             Row(
               children: [
                 Container(
@@ -249,13 +244,13 @@ class AppliedScreen extends StatelessWidget {
             ),
             const SizedBox(height: 22),
 
-            // Stepper Node Timelines Pipeline Progress Tracker Engine Layout Block
+            // show application progress timeline
             _buildVisualWorkflowStepper(app['statusStep'] ?? 0, greenTheme),
             const SizedBox(height: 18),
             Divider(color: Colors.grey.shade100, height: 1),
             const SizedBox(height: 14),
 
-            // Justification Text String Rationale Capture Snippet
+            // store application justification text
             Text(
               app['justificationText'] ?? '',
               maxLines: 2,
@@ -274,7 +269,7 @@ class AppliedScreen extends StatelessWidget {
     );
   }
 
-  /// Structural custom timeline engine creating matching pipeline step nodes cleanly
+  // create custom timeline nodes for application progress
   Widget _buildVisualWorkflowStepper(int activeStepIndex, Color activeGreen) {
     final List<String> stepsList = [
       'Under Review',
@@ -346,11 +341,7 @@ class AppliedScreen extends StatelessWidget {
             final int index = entry.key;
             final bool isActiveTag = index == activeStepIndex;
 
-            // Expanded (not a fixed-width SizedBox) so each label gets an
-            // equal, full share of the card's width — a fixed 60px box was
-            // too narrow for "Under Review", which is why it was clipping
-            // to "Under Re...". Two-line wrapping is the fallback instead
-            // of an ellipsis, so the label stays readable if it's still tight.
+            // give timeline labels equal width and allow wrapping
             return Expanded(
               child: Text(
                 entry.value,

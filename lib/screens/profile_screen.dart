@@ -5,8 +5,7 @@ import '../providers/auth_providers.dart';
 import 'profile_setup_screen.dart';
 import 'notification_screen.dart';
 
-/// Presentation profile layer displaying individual ALU student metrics, tags, and parameters.
-/// Features a modal contextual options drawer sheet and notification routing pipelines.
+// show student profile metrics & tags, & handle profile options & notifications
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -23,14 +22,13 @@ class ProfileScreen extends ConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Section: Rich deep-green brand header banner block
           Container(
             color: aluDeepGreen,
             width: double.infinity,
             padding: const EdgeInsets.only(top: 60.0, bottom: 24.0, left: 24.0, right: 24.0),
             child: Column(
               children: [
-                // Top Custom Header Control Utility Row Layout
+                // header controls layout
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -48,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                             );
                           },
                         ),
-                        // Real-time unread alert badge tracker layer
+                        // unread alert badge tracker
                         Positioned(
                           top: 10,
                           right: 12,
@@ -63,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
                 
-                // Avatar circle displaying leading initial token layer
+                // avatar circle display
                 Container(
                   width: 76,
                   height: 76,
@@ -76,21 +74,21 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Username Typography Node
+                // username
                 Text(
                   'm.dhieu',
                   style: GoogleFonts.inter(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 4),
 
-                // Institutional campus status string line
+                // campus
                 Text(
                   'ALU Student · Kigali Campus',
                   style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.7), fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 24),
 
-                // Horizontal Analytical KPI Counter Metrics Grid Row
+                // KPI metrics grid row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -103,7 +101,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
 
-          // Lower Section: Scrollable chip tags and descriptive card groups
+          // scrollable chip tags & descriptive card groups
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -188,7 +186,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  /// Displays an interactive contextual menu options dashboard drawer sheet panel
+  // menu options drawer
   void _showSettingsBottomSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
@@ -222,9 +220,7 @@ class ProfileScreen extends ConsumerWidget {
                   title: Text('Sign Out', style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 15, color: const Color(0xFFE53E3E))),
                   onTap: () {
                     Navigator.of(context).pop();
-                    // AuthGate (main.dart) watches auth state and swaps
-                    // back to OnboardingScreen automatically once this
-                    // resolves — no manual navigation needed.
+                    // let AuthGate handle nav after sign out
                     ref.read(authRepositoryProvider).signOut();
                   },
                 ),

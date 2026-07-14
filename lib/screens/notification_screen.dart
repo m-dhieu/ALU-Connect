@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Renders a dynamic, real-time feedback dashboard displaying application status updates.
+// show real-time application status updates
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
 
@@ -9,7 +9,7 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color aluDeepGreen = Color(0xFF0C4E33);
 
-    // Mock live system update logs mirroring the status pipeline switches
+    // store mock status update logs
     final List<Map<String, dynamic>> notifications = [
       {
         'title': 'Application Shortlisted 🚀',

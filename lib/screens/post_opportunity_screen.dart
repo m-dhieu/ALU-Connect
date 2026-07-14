@@ -5,8 +5,7 @@ import '../models/opportunity.dart';
 import '../providers/auth_providers.dart';
 import '../providers/opportunity_providers.dart';
 
-/// Comprehensive form terminal for verified startups to publish new roles,
-/// or edit one they've already posted when [existingOpportunity] is set.
+// form for startups to publish/edit opportunities
 class PostOpportunityScreen extends ConsumerStatefulWidget {
   final Opportunity? existingOpportunity;
 
@@ -21,7 +20,7 @@ class PostOpportunityScreen extends ConsumerStatefulWidget {
 class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Text Input Controllers
+  // text input controllers
   late final _titleController = TextEditingController(text: widget.existingOpportunity?.roleTitle);
   late final _descController = TextEditingController(text: widget.existingOpportunity?.description);
   late final _durationController = TextEditingController(text: widget.existingOpportunity?.duration);
@@ -30,7 +29,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
   final _tagEntryController = TextEditingController();
   final _responsibilityEntryController = TextEditingController();
 
-  // Reactive Selection States matching your precise chip design arrays
+  // manage selected chip states
   late String _selectedType = widget.existingOpportunity?.jobType ?? 'Internship';
   late String _selectedDomain = widget.existingOpportunity?.department ?? 'Engineering';
   late String _selectedWorkMode = widget.existingOpportunity?.workplaceSetting ?? 'On-site';
@@ -64,7 +63,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
     super.dispose();
   }
 
-  /// Checks validation to dynamically update primary action button colors
+  // update action button based on form validation
   bool _isFormValid() {
     return _titleController.text.trim().isNotEmpty &&
         _descController.text.trim().isNotEmpty &&
@@ -102,9 +101,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
           throw StateError('No signed-in user — cannot attribute this posting to a founder.');
         }
 
-        // Same initials-from-name derivation used on the founder's profile
-        // tab, so the avatar shown on this listing matches the one they see
-        // on their own dashboard.
+        // use same founder avatar initials across screens
         final String founderName = profile?.fullName ?? 'Startup';
         final String initials = founderName
             .trim()
@@ -115,7 +112,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
             .join();
 
         final opportunity = Opportunity(
-          id: '', // ignored by toMap(); Firestore assigns the real id on add()
+          id: '', // ignored (Firestore assigns real id)
           postedByUid: uid,
           companyName: founderName,
           logoInit: initials.isEmpty ? '?' : initials,
@@ -130,7 +127,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
           spotsAvailable: int.tryParse(_spotsController.text.trim()) ?? 1,
           skillsTags: skillsTags,
           responsibilities: responsibilities,
-          createdAt: DateTime.now(), // overwritten server-side by FieldValue.serverTimestamp()
+          createdAt: DateTime.now(), 
         );
 
         await ref.read(opportunitiesRepositoryProvider).postOpportunity(opportunity);
@@ -181,11 +178,10 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: Form(
             key: _formKey,
-            onChanged: () => setState(() {}), // Triggers rebuilds to evaluate button color changes
+            onChanged: () => setState(() {}), 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Typography Elements
                 Text(
                   widget.isEditing ? 'Edit opportunity' : 'Post an opportunity',
                   style: GoogleFonts.inter(color: Colors.black, fontSize: 32, fontWeight: FontWeight.w800),
@@ -197,7 +193,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // Section 1: Role Title Form Box
+                // section1: role title form box
                 _buildFormSectionLabel('ROLE TITLE'),
                 TextFormField(
                   controller: _titleController,
@@ -206,7 +202,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Section 2: Opportunity Type Chips Group
+                // section2: opportunity type chips group
                 _buildFormSectionLabel('TYPE'),
                 Wrap(
                   spacing: 8.0,
@@ -216,7 +212,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Section 3: Domain Category Chips Group
+                // section3: domain category chips group
                 _buildFormSectionLabel('DOMAIN'),
                 Wrap(
                   spacing: 8.0,
@@ -227,7 +223,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Section 4: Multi-line Role Description Area
+                // section4: multi-line role description area
                 _buildFormSectionLabel('DESCRIPTION'),
                 TextFormField(
                   controller: _descController,
@@ -237,7 +233,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Split Fields: Duration and Monthly Stipend
+                // duration & stipend fields
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -270,7 +266,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Split Fields: Spots Available and Work Mode
+                // spots available & work mode
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -311,8 +307,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Section: What You'll Do — a list of responsibilities the
-                // founder adds one at a time (Opportunity.responsibilities).
+                // show founder added responsibilities list
                 _buildFormSectionLabel("WHAT YOU'LL DO"),
                 TextFormField(
                   controller: _responsibilityEntryController,
@@ -346,9 +341,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ],
                 const SizedBox(height: 24),
 
-                // Section: Skills & Tags — the founder adds one at a time,
-                // shown to students on the details screen as pill chips
-                // (Opportunity.skillsTags).
+                // show founder added skills & tags as chips
                 _buildFormSectionLabel('REQUIRED SKILLS & TAGS'),
                 TextFormField(
                   controller: _tagEntryController,
@@ -378,7 +371,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                 ],
                 const SizedBox(height: 36),
 
-                // Form Submission Controller Action Button
+                // handle form submission action
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -425,7 +418,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
     );
   }
 
-  /// Generates specialized form chip toggle components reactively matching brand highlights
+  // reactive form chip toggle components
   Widget _buildSelectionChip(String label, bool isSelected, Color activeColor, Color idleColor, VoidCallback onTap) {
     return ChoiceChip(
       label: Container(

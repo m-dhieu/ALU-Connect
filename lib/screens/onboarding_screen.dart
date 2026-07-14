@@ -3,14 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
-/// The welcoming landing screen for the ALU Connect Platform.
-/// Styled precisely according to the brand guidelines with deep forest greens.
+// landing screen
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Exact ALU brand palettes mapped from the UI specification
     const Color aluDeepGreen = Color(0xFF0C4E33);
     const Color aluOrange = Color(0xFFF19E18);
     const Color aluLightBg = Color(0xFFF8F9FA);
@@ -19,12 +17,11 @@ class OnboardingScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Top portion containing background asset image and marketing titles
+          // background image + marketing titles
           Expanded(
             flex: 6,
             child: Stack(
               children: [
-                // Local asset imagery layer
                 Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
@@ -33,7 +30,6 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Gradated green tinting overlay
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -46,7 +42,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Text typography elements positioned on top of asset layer
+                // text elements
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -54,7 +50,7 @@ class OnboardingScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-                        // Top horizontal identity container
+                        // horizontal identity container
                         Row(
                           children: [
                             Container(
@@ -84,7 +80,7 @@ class OnboardingScreen extends StatelessWidget {
                           ],
                         ),
                         const Spacer(),
-                        // Primary value statement
+                        // value statement
                         Text(
                           'Your career\nstarts here.',
                           style: GoogleFonts.inter(
@@ -95,7 +91,7 @@ class OnboardingScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Subtext describing application focus
+                        // application focus
                         Text(
                           "Connecting ALU students with student-led startups building Africa's future.",
                           style: GoogleFonts.inter(
@@ -114,7 +110,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
           ),
 
-          // Bottom portion hosting execution inputs
+          // bottom section with input fields
           Expanded(
             flex: 4,
             child: Container(
@@ -123,7 +119,7 @@ class OnboardingScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Sign In interactive action panel
+                  // sign in action panel
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -151,7 +147,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Account setup action panel
+                  // account setup action panel
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -180,7 +176,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // Informative verification disclaimer message
+                  // verification disclaimer message
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
