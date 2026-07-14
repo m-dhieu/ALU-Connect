@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/opportunity_data.dart'; // Import decoupled data layer file
+import '../providers/auth_providers.dart';
 import '../providers/opportunity_providers.dart';
 import 'startup_profile_screen.dart';
 import 'opportunity_details_screen.dart';
@@ -9,7 +9,7 @@ import 'applied_screen.dart';
 import 'profile_screen.dart';
 
 /// Main Dashboard container screen for ALU students.
-/// Combines the static demo listings with real Firestore-backed postings.
+/// Shows real Firestore-backed opportunity postings.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -37,16 +37,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
 
     // Real founder-posted opportunities from Firestore, converted into the
-    // same Map shape the static demo listings use (see
-    // Opportunity.toDisplayMap()) so both can flow through one filter and
-    // one set of card widgets below.
+    // Map shape the card widgets below expect (see Opportunity.toDisplayMap()).
     final postedOpportunities = ref.watch(allPostedOpportunitiesProvider).value ?? const [];
-    final List<Map<String, dynamic>> combinedOpportunities = [
-      ...postedOpportunities.map((o) => o.toDisplayMap()),
-      ...OpportunityRepository.allOpportunities,
-    ];
+    final List<Map<String, dynamic>> liveOpportunities = postedOpportunities.map((o) => o.toDisplayMap()).toList();
+    final verifiedStartups = ref.watch(verifiedStartupsProvider).value ?? const [];
 
-    final List<Map<String, dynamic>> filteredOpportunities = combinedOpportunities.where((opportunity) {
+    final List<Map<String, dynamic>> filteredOpportunities = liveOpportunities.where((opportunity) {
       final bool matchesCategory = _selectedCategory == 'All' || opportunity['category'] == _selectedCategory;
       final bool matchesJobType = _selectedJobType == 'All' || opportunity['jobType'] == _selectedJobType;
       final bool matchesRemote = !_isRemoteSelected || opportunity['workplaceSetting'] == 'Remote';
@@ -207,102 +203,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Section Title: ALU Startups
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: Text(
-                            'ALU Startups',
-                            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black),
+                        // "ALU Startups" directory — only rendered once at
+                        // least one startup account has been ALU-verified,
+                        // rather than showing an empty carousel.
+                        if (verifiedStartups.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Text(
+                              'ALU Startups',
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
+                          const SizedBox(height: 14),
 
-                        // Render Startups List out of the external Repository file reference arrays
-                        SizedBox(
-                          height: 95,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            itemCount: OpportunityRepository.aluStartups.length,
-                            itemBuilder: (context, index) {
-                              final startup = OpportunityRepository.aluStartups[index];
-                              final bool isFarmWave = startup['name'] == 'FarmWave';
-                              final String fullName = isFarmWave ? 'FarmWave' : (startup['name'] == 'Zuri' ? 'Zuri Health' : startup['name']);
+                          SizedBox(
+                            height: 95,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 18),
+                              itemCount: verifiedStartups.length,
+                              itemBuilder: (context, index) {
+                                final startup = verifiedStartups[index];
+                                final String initials = startup.fullName
+                                    .trim()
+                                    .split(RegExp(r'\s+'))
+                                    .where((w) => w.isNotEmpty)
+                                    .take(2)
+                                    .map((w) => w[0].toUpperCase())
+                                    .join();
 
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => StartupProfileScreen(
-                                          startupData: {
-                                            'logoInit': startup['init'],
-                                            'logoColor': startup['color'],
-                                            'companyName': fullName,
-                                            'startupBio': isFarmWave
-                                                ? 'Precision agriculture intelligence for smallholder farmers'
-                                                : 'Democratizing healthcare access across Africa',
-                                            'fullAboutText': isFarmWave
-                                                ? "FarmWave uses satellite imagery, IoT sensors, and machine learning to deliver crop health insights directly to smallholder farmers via SMS."
-                                                : "Zuri Health is a digital health platform connecting patients across sub-Saharan Africa with certified doctors via telemedicine.",
-                                            'metaChips': isFarmWave
-                                                ? [' 🚜 AgriTech', '📍 Kigali', '📅 Est. 2024', '👥 9 people']
-                                                : ['🏥 HealthTech', '📍 Kigali', '📅 Est. 2023', '👥 12 people'],
-                                            'domains': isFarmWave
-                                                ? ['Engineering', 'Research', 'Business']
-                                                : ['Engineering', 'Design', 'Marketing'],
-                                            'founders': isFarmWave
-                                                ? [
-                                                    {'name': 'Seun Adeyinka', 'role': 'Co-founder', 'init': 'SA'},
-                                                    {'name': 'Aisha Kamara', 'role': 'Co-founder', 'init': 'AK'},
-                                                  ]
-                                                : [
-                                                    {'name': 'Amara Diallo', 'role': 'Co-founder', 'init': 'AD'},
-                                                    {'name': 'Kwame Asante', 'role': 'Co-founder', 'init': 'KA'},
-                                                  ],
-                                            'openRoles': isFarmWave
-                                                ? [
-                                                    {
-                                                      'title': 'ML Research Intern',
-                                                      'meta': 'Internship · 3 months · On-site',
-                                                      'pay': 'RWF 90,000/month',
-                                                      'spotsLeft': '1 spot left',
-                                                      'daysLeft': '15d left',
-                                                      'department': 'Research',
-                                                    },
-                                                  ]
-                                                : [
-                                                    {
-                                                      'title': 'Frontend Engineer Intern',
-                                                      'meta': 'Internship · 3 months · On-site',
-                                                      'pay': 'RWF 80,000/month',
-                                                      'spotsLeft': '2 spots left',
-                                                      'daysLeft': '14d left',
-                                                      'department': 'Engineering',
-                                                    },
-                                                  ],
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Column(
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          Container(
-                                            width: 56,
-                                            height: 56,
-                                            decoration: BoxDecoration(color: startup['color'], borderRadius: BorderRadius.circular(16)),
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                              startup['init'],
-                                              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                                            ),
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => StartupProfileScreen(
+                                            startupData: {
+                                              'logoInit': initials.isEmpty ? '?' : initials,
+                                              'logoColor': aluDeepGreen,
+                                              'companyName': startup.fullName,
+                                              'startupBio': startup.tagline,
+                                              'fullAboutText': startup.about,
+                                              'metaChips': [
+                                                if (startup.industry.isNotEmpty) startup.industry,
+                                                if (startup.companySize.isNotEmpty) '👥 ${startup.companySize}',
+                                              ],
+                                              'domains': startup.domains,
+                                            },
                                           ),
-                                          if (startup['verified'])
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Column(
+                                      children: [
+                                        Stack(
+                                          children: [
+                                            Container(
+                                              width: 56,
+                                              height: 56,
+                                              decoration: BoxDecoration(color: aluDeepGreen, borderRadius: BorderRadius.circular(16)),
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                initials.isEmpty ? '?' : initials,
+                                                style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                              ),
+                                            ),
                                             Positioned(
                                               bottom: 0,
                                               right: 0,
@@ -312,27 +279,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                 child: Icon(Icons.check_circle, color: aluOrange, size: 15),
                                               ),
                                             ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      SizedBox(
-                                        width: 65,
-                                        child: Text(
-                                          startup['name'],
-                                          textAlign: TextAlign.center,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                                          ],
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 6),
+                                        SizedBox(
+                                          width: 65,
+                                          child: Text(
+                                            startup.fullName,
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
+                        ],
 
                         // Section Title: Dynamic Categorized Header Count (Matches Screenshot)
                         Padding(

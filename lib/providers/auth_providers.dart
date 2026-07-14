@@ -31,3 +31,17 @@ final currentUserProfileProvider = StreamProvider<AppUser?>((ref) {
   }
   return ref.watch(authRepositoryProvider).watchUserProfile(uid);
 });
+
+/// Looks up any user's profile by uid — used on the opportunity details
+/// screen to show the actual posting founder's bio/verification status,
+/// as opposed to [currentUserProfileProvider] which is always the signed-in
+/// user's own profile.
+final startupProfileProvider = StreamProvider.family<AppUser?, String>((ref, uid) {
+  return ref.watch(authRepositoryProvider).watchUserProfile(uid);
+});
+
+/// ALU-verified startup accounts, feeding the "ALU Startups" directory on
+/// the student explore feed.
+final verifiedStartupsProvider = StreamProvider<List<AppUser>>((ref) {
+  return ref.watch(authRepositoryProvider).watchVerifiedStartups();
+});

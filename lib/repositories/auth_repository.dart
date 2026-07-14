@@ -102,4 +102,16 @@ class AuthRepository {
       return AppUser.fromMap(doc.id, doc.data()!);
     });
   }
+
+  /// ALU-verified startup accounts, for the student explore feed's "ALU
+  /// Startups" directory — replaces the previous hard-coded FarmWave/Zuri
+  /// Health entries with real founder profiles.
+  Stream<List<AppUser>> watchVerifiedStartups() {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'startup')
+        .where('isVerifiedStartup', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => AppUser.fromMap(doc.id, doc.data())).toList());
+  }
 }

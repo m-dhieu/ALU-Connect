@@ -20,6 +20,8 @@ class Opportunity {
   final String department;
   final String stipend;
   final int spotsAvailable;
+  final List<String> skillsTags;
+  final List<String> responsibilities;
   final DateTime createdAt;
 
   const Opportunity({
@@ -36,6 +38,8 @@ class Opportunity {
     required this.department,
     required this.stipend,
     required this.spotsAvailable,
+    this.skillsTags = const [],
+    this.responsibilities = const [],
     required this.createdAt,
   });
 
@@ -72,6 +76,8 @@ class Opportunity {
       department: data['department'] as String? ?? '',
       stipend: data['stipend'] as String? ?? '',
       spotsAvailable: data['spotsAvailable'] as int? ?? 1,
+      skillsTags: List<String>.from(data['skillsTags'] as List? ?? const []),
+      responsibilities: List<String>.from(data['responsibilities'] as List? ?? const []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -90,8 +96,51 @@ class Opportunity {
       'department': department,
       'stipend': stipend,
       'spotsAvailable': spotsAvailable,
+      'skillsTags': skillsTags,
+      'responsibilities': responsibilities,
       'createdAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  /// Same fields as [toMap], minus `createdAt` — used when updating an
+  /// existing listing so editing it doesn't reset its original posting date
+  /// (and therefore its [daysLeftLabel] countdown).
+  Map<String, dynamic> toUpdateMap() {
+    final map = toMap();
+    map.remove('createdAt');
+    return map;
+  }
+
+  Opportunity copyWith({
+    String? roleTitle,
+    String? description,
+    String? workplaceSetting,
+    String? duration,
+    String? jobType,
+    String? department,
+    String? stipend,
+    int? spotsAvailable,
+    List<String>? skillsTags,
+    List<String>? responsibilities,
+  }) {
+    return Opportunity(
+      id: id,
+      postedByUid: postedByUid,
+      companyName: companyName,
+      logoInit: logoInit,
+      logoColor: logoColor,
+      roleTitle: roleTitle ?? this.roleTitle,
+      description: description ?? this.description,
+      workplaceSetting: workplaceSetting ?? this.workplaceSetting,
+      duration: duration ?? this.duration,
+      jobType: jobType ?? this.jobType,
+      department: department ?? this.department,
+      stipend: stipend ?? this.stipend,
+      spotsAvailable: spotsAvailable ?? this.spotsAvailable,
+      skillsTags: skillsTags ?? this.skillsTags,
+      responsibilities: responsibilities ?? this.responsibilities,
+      createdAt: createdAt,
+    );
   }
 
   /// Bridges to the loose `Map<String, dynamic>` shape OpportunityDetailsScreen
@@ -102,6 +151,7 @@ class Opportunity {
   Map<String, dynamic> toDisplayMap() {
     return {
       'id': id,
+      'postedByUid': postedByUid,
       'logoInit': logoInit,
       'logoColor': logoColor,
       'companyName': companyName,
@@ -115,6 +165,8 @@ class Opportunity {
       'spotsLeft': spotsLeftLabel,
       'daysLeft': daysLeftLabel,
       'aboutText': description,
+      'skillsTags': skillsTags,
+      'responsibilities': responsibilities,
     };
   }
 }

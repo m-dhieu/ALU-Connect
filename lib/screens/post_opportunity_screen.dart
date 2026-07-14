@@ -5,9 +5,14 @@ import '../models/opportunity.dart';
 import '../providers/auth_providers.dart';
 import '../providers/opportunity_providers.dart';
 
-/// Comprehensive form terminal for verified startups to publish new roles.
+/// Comprehensive form terminal for verified startups to publish new roles,
+/// or edit one they've already posted when [existingOpportunity] is set.
 class PostOpportunityScreen extends ConsumerStatefulWidget {
-  const PostOpportunityScreen({super.key});
+  final Opportunity? existingOpportunity;
+
+  const PostOpportunityScreen({super.key, this.existingOpportunity});
+
+  bool get isEditing => existingOpportunity != null;
 
   @override
   ConsumerState<PostOpportunityScreen> createState() => _PostOpportunityScreenState();
@@ -17,17 +22,35 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Text Input Controllers
-  final _titleController = TextEditingController();
-  final _descController = TextEditingController();
-  final _durationController = TextEditingController();
-  final _stipendController = TextEditingController();
-  final _spotsController = TextEditingController(text: '1');
+  late final _titleController = TextEditingController(text: widget.existingOpportunity?.roleTitle);
+  late final _descController = TextEditingController(text: widget.existingOpportunity?.description);
+  late final _durationController = TextEditingController(text: widget.existingOpportunity?.duration);
+  late final _stipendController = TextEditingController(text: widget.existingOpportunity?.stipend);
+  late final _spotsController = TextEditingController(text: widget.existingOpportunity?.spotsAvailable.toString() ?? '1');
+  final _tagEntryController = TextEditingController();
+  final _responsibilityEntryController = TextEditingController();
 
   // Reactive Selection States matching your precise chip design arrays
-  String _selectedType = 'Internship';
-  String _selectedDomain = 'Engineering';
-  String _selectedWorkMode = 'On-site';
+  late String _selectedType = widget.existingOpportunity?.jobType ?? 'Internship';
+  late String _selectedDomain = widget.existingOpportunity?.department ?? 'Engineering';
+  late String _selectedWorkMode = widget.existingOpportunity?.workplaceSetting ?? 'On-site';
+  late final List<String> _skillsTags = List.of(widget.existingOpportunity?.skillsTags ?? const []);
+  late final List<String> _responsibilities = List.of(widget.existingOpportunity?.responsibilities ?? const []);
   bool _isSubmitting = false;
+
+  void _addSkillTag(String rawValue) {
+    final String tag = rawValue.trim();
+    _tagEntryController.clear();
+    if (tag.isEmpty || _skillsTags.contains(tag)) return;
+    setState(() => _skillsTags.add(tag));
+  }
+
+  void _addResponsibility(String rawValue) {
+    final String item = rawValue.trim();
+    _responsibilityEntryController.clear();
+    if (item.isEmpty || _responsibilities.contains(item)) return;
+    setState(() => _responsibilities.add(item));
+  }
 
   @override
   void dispose() {
@@ -36,6 +59,8 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
     _durationController.dispose();
     _stipendController.dispose();
     _spotsController.dispose();
+    _tagEntryController.dispose();
+    _responsibilityEntryController.dispose();
     super.dispose();
   }
 
@@ -52,55 +77,79 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final user = ref.read(authStateProvider).value;
-      final profile = ref.read(currentUserProfileProvider).value;
-      if (user == null) {
-        throw StateError('No signed-in user — cannot attribute this posting to a founder.');
+      final existing = widget.existingOpportunity;
+      final List<String> skillsTags = List.of(_skillsTags);
+      final List<String> responsibilities = List.of(_responsibilities);
+
+      if (existing != null) {
+        final updated = existing.copyWith(
+          roleTitle: _titleController.text.trim(),
+          description: _descController.text.trim(),
+          workplaceSetting: _selectedWorkMode,
+          duration: _durationController.text.trim(),
+          jobType: _selectedType,
+          department: _selectedDomain,
+          stipend: _stipendController.text.trim(),
+          spotsAvailable: int.tryParse(_spotsController.text.trim()) ?? 1,
+          skillsTags: skillsTags,
+          responsibilities: responsibilities,
+        );
+        await ref.read(opportunitiesRepositoryProvider).updateOpportunity(updated);
+      } else {
+        final uid = ref.read(authRepositoryProvider).currentUser?.uid;
+        final profile = ref.read(currentUserProfileProvider).value;
+        if (uid == null) {
+          throw StateError('No signed-in user — cannot attribute this posting to a founder.');
+        }
+
+        // Same initials-from-name derivation used on the founder's profile
+        // tab, so the avatar shown on this listing matches the one they see
+        // on their own dashboard.
+        final String founderName = profile?.fullName ?? 'Startup';
+        final String initials = founderName
+            .trim()
+            .split(RegExp(r'\s+'))
+            .where((w) => w.isNotEmpty)
+            .take(2)
+            .map((w) => w[0].toUpperCase())
+            .join();
+
+        final opportunity = Opportunity(
+          id: '', // ignored by toMap(); Firestore assigns the real id on add()
+          postedByUid: uid,
+          companyName: founderName,
+          logoInit: initials.isEmpty ? '?' : initials,
+          logoColor: const Color(0xFF0C4E33),
+          roleTitle: _titleController.text.trim(),
+          description: _descController.text.trim(),
+          workplaceSetting: _selectedWorkMode,
+          duration: _durationController.text.trim(),
+          jobType: _selectedType,
+          department: _selectedDomain,
+          stipend: _stipendController.text.trim(),
+          spotsAvailable: int.tryParse(_spotsController.text.trim()) ?? 1,
+          skillsTags: skillsTags,
+          responsibilities: responsibilities,
+          createdAt: DateTime.now(), // overwritten server-side by FieldValue.serverTimestamp()
+        );
+
+        await ref.read(opportunitiesRepositoryProvider).postOpportunity(opportunity);
       }
-
-      // Same initials-from-name derivation used on the founder's profile
-      // tab, so the avatar shown on this listing matches the one they see
-      // on their own dashboard.
-      final String founderName = profile?.fullName ?? 'Startup';
-      final String initials = founderName
-          .trim()
-          .split(RegExp(r'\s+'))
-          .where((w) => w.isNotEmpty)
-          .take(2)
-          .map((w) => w[0].toUpperCase())
-          .join();
-
-      final opportunity = Opportunity(
-        id: '', // ignored by toMap(); Firestore assigns the real id on add()
-        postedByUid: user.uid,
-        companyName: founderName,
-        logoInit: initials.isEmpty ? '?' : initials,
-        logoColor: const Color(0xFF0C4E33),
-        roleTitle: _titleController.text.trim(),
-        description: _descController.text.trim(),
-        workplaceSetting: _selectedWorkMode,
-        duration: _durationController.text.trim(),
-        jobType: _selectedType,
-        department: _selectedDomain,
-        stipend: _stipendController.text.trim(),
-        spotsAvailable: int.tryParse(_spotsController.text.trim()) ?? 1,
-        createdAt: DateTime.now(), // overwritten server-side by FieldValue.serverTimestamp()
-      );
-
-      await ref.read(opportunitiesRepositoryProvider).postOpportunity(opportunity);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Opportunity published successfully to ALU ecosystem!'),
-          backgroundColor: Color(0xFF0C4E33),
+        SnackBar(
+          content: Text(existing != null
+              ? 'Opportunity updated successfully!'
+              : 'Opportunity published successfully to ALU ecosystem!'),
+          backgroundColor: const Color(0xFF0C4E33),
         ),
       );
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not publish this opportunity: $e')),
+        SnackBar(content: Text('Could not save this opportunity: $e')),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -138,12 +187,12 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
               children: [
                 // Header Typography Elements
                 Text(
-                  'Post an opportunity',
+                  widget.isEditing ? 'Edit opportunity' : 'Post an opportunity',
                   style: GoogleFonts.inter(color: Colors.black, fontSize: 32, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Posting as Zuri Health',
+                  widget.isEditing ? 'Update the details for this listing' : 'Posting as Zuri Health',
                   style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 28),
@@ -260,6 +309,73 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+
+                // Section: What You'll Do — a list of responsibilities the
+                // founder adds one at a time (Opportunity.responsibilities).
+                _buildFormSectionLabel("WHAT YOU'LL DO"),
+                TextFormField(
+                  controller: _responsibilityEntryController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: _buildInputDecoration('e.g. Design onboarding screens — press enter to add').copyWith(
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add_circle, color: aluDeepGreen),
+                      onPressed: () => _addResponsibility(_responsibilityEntryController.text),
+                    ),
+                  ),
+                  onFieldSubmitted: _addResponsibility,
+                ),
+                if (_responsibilities.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  ..._responsibilities.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('→  ', style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: Text(item, style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 14, fontWeight: FontWeight.w500)),
+                        ),
+                        InkWell(
+                          onTap: () => setState(() => _responsibilities.remove(item)),
+                          child: Icon(Icons.close, size: 16, color: Colors.grey.shade400),
+                        ),
+                      ],
+                    ),
+                  )),
+                ],
+                const SizedBox(height: 24),
+
+                // Section: Skills & Tags — the founder adds one at a time,
+                // shown to students on the details screen as pill chips
+                // (Opportunity.skillsTags).
+                _buildFormSectionLabel('REQUIRED SKILLS & TAGS'),
+                TextFormField(
+                  controller: _tagEntryController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: _buildInputDecoration('e.g. Figma — press enter to add').copyWith(
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add_circle, color: aluDeepGreen),
+                      onPressed: () => _addSkillTag(_tagEntryController.text),
+                    ),
+                  ),
+                  onFieldSubmitted: _addSkillTag,
+                ),
+                if (_skillsTags.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: _skillsTags.map((tag) => Chip(
+                      label: Text(tag),
+                      labelStyle: GoogleFonts.inter(color: Colors.grey.shade800, fontSize: 13, fontWeight: FontWeight.w600),
+                      backgroundColor: aluLightBg,
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () => setState(() => _skillsTags.remove(tag)),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    )).toList(),
+                  ),
+                ],
                 const SizedBox(height: 36),
 
                 // Form Submission Controller Action Button
@@ -281,7 +397,7 @@ class _PostOpportunityScreenState extends ConsumerState<PostOpportunityScreen> {
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                           )
                         : Text(
-                            'Post Opportunity',
+                            widget.isEditing ? 'Save Changes' : 'Post Opportunity',
                             style: GoogleFonts.inter(
                               color: _isFormValid() ? Colors.white : Colors.white70,
                               fontSize: 16,

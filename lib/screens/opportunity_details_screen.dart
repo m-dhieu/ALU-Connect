@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/auth_providers.dart';
 import 'success_screen.dart';
 
 /// Comprehensive specification viewer layout for individual marketplace listings.
 /// Dynamically tracks user submission states, modifies text boundaries, and adapts brand theme colors.
-class OpportunityDetailsScreen extends StatelessWidget {
+class OpportunityDetailsScreen extends ConsumerWidget {
   final Map<String, dynamic> opportunityData;
 
   const OpportunityDetailsScreen({
@@ -13,20 +15,24 @@ class OpportunityDetailsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Dynamic brand color palette selection matching the parent card configurations
     final Color startupThemeColor = opportunityData['logoColor'] ?? const Color(0xFF0C4E33);
     const Color aluDeepGreen = Color(0xFF0C4E33);
-    const Color aluOrange = Color(0xFFF19E18);
 
     // Conditional evaluation checking if this position has an existing submission entry
     final bool isAlreadyApplied = opportunityData['isApplied'] ?? false;
 
-    // Explicit tag collections parsed out dynamically from data maps
-    final List<String> skillsTags = List<String>.from(opportunityData['skillsTags'] ?? 
-        (opportunityData['roleTitle']?.contains('ML') ?? false 
-            ? ['Python', 'PyTorch', 'TensorFlow', 'Data Science']
-            : ['Figma', 'UX Research', 'HealthTech', 'Mobile']));
+    // Explicit tag collections parsed out dynamically from data maps — no
+    // fallback list here since the posting form doesn't collect skill tags;
+    // showing invented ones would misrepresent a real founder's listing.
+    final List<String> skillsTags = List<String>.from(opportunityData['skillsTags'] ?? const <String>[]);
+    final List<String> responsibilities = List<String>.from(opportunityData['responsibilities'] ?? const <String>[]);
+
+    // The founder's real profile, looked up by the uid actually attached to
+    // this posting — replaces the previous hardcoded "Zuri Health" bio/badge.
+    final String? postedByUid = opportunityData['postedByUid'] as String?;
+    final startupProfile = postedByUid == null ? null : ref.watch(startupProfileProvider(postedByUid)).value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -141,8 +147,7 @@ class OpportunityDetailsScreen extends StatelessWidget {
 
                   // Paragraph paragraph narrative detail mapping dynamically to company profiles
                   Text(
-                    opportunityData['aboutText'] ?? 
-                    "Help shape the user experience of Africa's fastest-growing digital health platform. You'll own end-to-end design for two upcoming features and conduct user research with patients and doctors.",
+                    opportunityData['aboutText'] as String? ?? '',
                     style: GoogleFonts.inter(
                       color: Colors.grey.shade700,
                       fontSize: 15,
@@ -152,75 +157,44 @@ class OpportunityDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
 
-                  // Heading Block: Execution objectives criteria title
-                  Text(
-                    "What you'll do",
-                    style: GoogleFonts.inter(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
+                  // "What you'll do" only renders when the founder actually
+                  // supplied responsibilities — no invented placeholder list.
+                  if (responsibilities.isNotEmpty) ...[
+                    Text(
+                      "What you'll do",
+                      style: GoogleFonts.inter(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Responsibility point rows matrix vectors adapted dynamically to role fields
-                  if (opportunityData['roleTitle']?.contains('ML') ?? false) ...[
-                    _buildBulletPointItem('Pre-process satellite and sensor datasets'),
-                    const SizedBox(height: 14),
-                    _buildBulletPointItem('Train image classification models using PyTorch or TensorFlow'),
-                    const SizedBox(height: 14),
-                    _buildBulletPointItem('Evaluate model performance and document findings'),
-                  ] else ...[
-                    _buildBulletPointItem('Conduct user interviews and synthesize research findings'),
-                    const SizedBox(height: 14),
-                    _buildBulletPointItem('Design wireframes, prototypes, and high-fidelity screens in Figma'),
-                    const SizedBox(height: 14),
-                    _buildBulletPointItem('Collaborate with engineers during implementation'),
-                    const SizedBox(height: 14),
-                    _buildBulletPointItem('Maintain and extend the design system'),
+                    const SizedBox(height: 16),
+                    for (int i = 0; i < responsibilities.length; i++) ...[
+                      _buildBulletPointItem(responsibilities[i]),
+                      if (i != responsibilities.length - 1) const SizedBox(height: 14),
+                    ],
+                    const SizedBox(height: 28),
                   ],
-                  const SizedBox(height: 28),
 
-                  // Heading Block: Requirements criteria title
-                  Text(
-                    "Requirements",
-                    style: GoogleFonts.inter(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
+                  // Skills & tags only render when the founder actually
+                  // supplied some — no invented placeholder tags.
+                  if (skillsTags.isNotEmpty) ...[
+                    Text(
+                      "Skills & tags",
+                      style: GoogleFonts.inter(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (opportunityData['roleTitle']?.contains('ML') ?? false) ...[
-                    _buildRequirementItem('Strong Python programming proficiency with mathematical foundations', aluOrange),
                     const SizedBox(height: 14),
-                    _buildRequirementItem('Familiarity with convolutional neural network architectures', aluOrange),
-                  ] else ...[
-                    _buildRequirementItem('Strong Figma skills with a portfolio', aluOrange),
-                    const SizedBox(height: 14),
-                    _buildRequirementItem('Understanding of UX research methods', aluOrange),
-                    const SizedBox(height: 14),
-                    _buildRequirementItem('Attention to accessibility and mobile-first design', aluOrange),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: skillsTags.map((tag) => _buildCapabilityTag(tag)).toList(),
+                    ),
+                    const SizedBox(height: 28),
                   ],
-                  const SizedBox(height: 28),
-
-                  // Heading Block: Skills and tags criteria title
-                  Text(
-                    "Skills & tags",
-                    style: GoogleFonts.inter(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: skillsTags.map((tag) => _buildCapabilityTag(tag)).toList(),
-                  ),
                   const SizedBox(height: 32),
 
                   // Heading Block: Institutional entity insight context section
@@ -262,23 +236,25 @@ class OpportunityDetailsScreen extends StatelessWidget {
                                   Row(
                                     children: [
                                       Text(
-                                        opportunityData['companyName'] ?? 'Zuri Health',
+                                        opportunityData['companyName'] ?? 'Startup',
                                         style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(4)),
-                                        child: Text(
-                                          'ALU VERIFIED',
-                                          style: GoogleFonts.inter(color: const Color(0xFFD97706), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                                      if (startupProfile?.isVerifiedStartup ?? false) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(4)),
+                                          child: Text(
+                                            'ALU VERIFIED',
+                                            style: GoogleFonts.inter(color: const Color(0xFFD97706), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ],
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${opportunityData['department'] ?? "HealthTech"} · Kigali, Rwanda',
+                                    opportunityData['department'] as String? ?? '',
                                     style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500),
                                   ),
                                 ],
@@ -288,7 +264,7 @@ class OpportunityDetailsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          opportunityData['startupBio'] ?? 'Democratizing healthcare access across Africa',
+                          startupProfile?.about.isNotEmpty ?? false ? startupProfile!.about : (startupProfile?.tagline ?? ''),
                           style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 12),
@@ -348,6 +324,17 @@ class OpportunityDetailsScreen extends StatelessWidget {
     );
   }
 
+  /// Factored block row processing custom bullet arrow vectors elegantly
+  Widget _buildBulletPointItem(String bulletText) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('→  ', style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
+        Expanded(child: Text(bulletText, style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4))),
+      ],
+    );
+  }
+
   /// Factory helper structuring isolated columns within the dynamic meta grid block
   Widget _buildGridMetadataCell(String label, String value, {bool isLast = false}) {
     return Expanded(
@@ -363,32 +350,6 @@ class OpportunityDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  /// Factored block row processing custom bullet arrow vectors elegantly
-  Widget _buildBulletPointItem(String bulletText) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('→  ', style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
-        Expanded(child: Text(bulletText, style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4))),
-      ],
-    );
-  }
-
-  /// Componentized requirement row builder parsing specific diamond vectors cleanly
-  Widget _buildRequirementItem(String text, Color bulletColor) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2.0),
-          child: Icon(Icons.change_history, color: bulletColor, size: 10),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: Text(text, style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4))),
-      ],
     );
   }
 

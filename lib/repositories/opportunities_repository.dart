@@ -16,6 +16,14 @@ class OpportunitiesRepository {
     return _collection.add(opportunity.toMap());
   }
 
+  /// Updates an already-posted opportunity in place. Uses
+  /// [Opportunity.toUpdateMap], not [Opportunity.toMap], so the original
+  /// `createdAt` is preserved instead of being stamped over with the edit
+  /// time (see that method's doc comment).
+  Future<void> updateOpportunity(Opportunity opportunity) {
+    return _collection.doc(opportunity.id).update(opportunity.toUpdateMap());
+  }
+
   /// All opportunities posted by one founder, newest first — this is what
   /// the startup dashboard's "Active Listings" section watches.
   Stream<List<Opportunity>> watchMyOpportunities(String uid) {

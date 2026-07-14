@@ -75,7 +75,7 @@ class _StartupProfileSetupScreenState extends ConsumerState<StartupProfileSetupS
   Future<void> _handleSubmit() async {
     setState(() => _isSubmitting = true);
     try {
-      final uid = ref.read(authStateProvider).value?.uid;
+      final uid = ref.read(authRepositoryProvider).currentUser?.uid;
       if (uid == null) throw StateError('No signed-in user.');
 
       await ref.read(authRepositoryProvider).updateStartupProfile(
