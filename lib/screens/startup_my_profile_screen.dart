@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/opportunity.dart';
 import '../providers/auth_providers.dart';
+import '../providers/opportunity_providers.dart';
+import 'post_opportunity_screen.dart';
 import 'startup_profile_setup_screen.dart';
 import 'notification_screen.dart';
 
@@ -17,6 +20,7 @@ class StartupMyProfileScreen extends ConsumerWidget {
     final profile = ref.watch(currentUserProfileProvider).value;
     final String founderName = profile?.fullName ?? 'Your venture';
     final bool isVerified = profile?.isVerifiedStartup ?? false;
+    final List<Opportunity> myOpportunities = ref.watch(myOpportunitiesProvider).value ?? const [];
     // Avatar initials from the founder's name (e.g. "Amara Diallo" -> "AD"),
     // rather than a fixed "ZH" placeholder.
     final String initials = founderName
@@ -98,12 +102,14 @@ class StartupMyProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Zeroed out until opportunities/applications are backed by
-                // real Firestore collections scoped to this founder.
+                // "Active Roles" reflects this founder's real posted
+                // listings. "Total Apps"/"Interviews" stay zeroed out since
+                // there's no applications-tracking collection in Firestore
+                // yet — showing a count here would be fabricated data.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildHeaderMetricCell('0', 'Active Roles'),
+                    _buildHeaderMetricCell('${myOpportunities.length}', 'Active Roles'),
                     _buildHeaderMetricCell('0', 'Total Apps'),
                     _buildHeaderMetricCell('0', 'Interviews'),
                   ],
@@ -119,6 +125,18 @@ class StartupMyProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (myOpportunities.isNotEmpty) ...[
+                    Text('Active Roles', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    ...myOpportunities.map((o) => _buildActiveRoleRow(context, o)),
+                    const SizedBox(height: 24),
+
+                    Text('Recent Updates', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    ...myOpportunities.take(3).map((o) => _buildRecentUpdateRow(o)),
+                    const SizedBox(height: 24),
+                  ],
+
                   Text('About', style: GoogleFonts.inter(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
                   if (profile == null || profile.about.isEmpty)
@@ -191,6 +209,72 @@ class StartupMyProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// One row per real posted opportunity, tappable straight into its edit
+  /// form — mirrors the dashboard's "Active Listings" cards but condensed
+  /// for this profile summary view.
+  Widget _buildActiveRoleRow(BuildContext context, Opportunity opportunity) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PostOpportunityScreen(existingOpportunity: opportunity),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10.0),
+        padding: const EdgeInsets.all(14.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FA),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(opportunity.roleTitle, style: GoogleFonts.inter(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${opportunity.jobType} · ${opportunity.spotsLeftLabel}',
+                    style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.edit_outlined, size: 16, color: Colors.grey.shade600),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// A lightweight "what's changed" feed derived from real posting dates —
+  /// there's no applications/notifications collection yet, so this only
+  /// surfaces the founder's own posting activity rather than inventing
+  /// application/interview events.
+  Widget _buildRecentUpdateRow(Opportunity opportunity) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.campaign_outlined, size: 16, color: Colors.grey.shade500),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '"${opportunity.roleTitle}" is live · ${opportunity.daysLeftLabel}',
+              style: GoogleFonts.inter(color: Colors.grey.shade700, fontSize: 13, fontWeight: FontWeight.w500),
             ),
           ),
         ],
